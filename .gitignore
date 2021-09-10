@@ -1,0 +1,8 @@
+# No executable files.
+examples/*
+!examples/*.*
+!examples/*/
+
+# No txt or vcd files.
+examples/**/*.txt
+examples/**/*.vcd
