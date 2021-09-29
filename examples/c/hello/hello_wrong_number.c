@@ -11,9 +11,9 @@ int main() {
     _fp_print(x);
     uint32_t y = 2;
     _fp_print(y); // Prints strange number 0x4E
-
-    uint32_t z = add(x, y);
-    _fp_print(z);
+    
+    // uint32_t z = add(x, y);
+    // _fp_print(z);
 
     // Terminate the simulation.
     // Put a while loop to make sure no unwanted side effects.
