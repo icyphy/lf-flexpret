@@ -7,14 +7,16 @@
 })
 
 uint32_t add(uint32_t a, uint32_t b) {
+    // uint32_t _a = a;
+    // uint32_t _b = b;
     uint32_t c;
     asm volatile (
-        "lw	a4,%1\n\t"
-        "lw	a5,%2\n\t"
-        "add	%0,a4,a5\n\t"
-        : "=r" (c)
-        : "r" (a), "r" (b)
-        : "a4", "a5"
+        "lw	t0,%[a]\n\t"
+        "lw	t1,%[b]\n\t"
+        "add %[c],t0,t1\n\t"
+        : [c] "=rm" (c)
+        : [a] "rm" (a), [b] "rm" (b)
+        : "t0", "t1"
        );
     return c;
 }
