@@ -10,5 +10,5 @@ dirname "$0"
 output_name="$1"
 shift
 
-riscv32-unknown-elf-gcc -I$(dirname "$0")/include -g -static -O0 -march=rv32i -mabi=ilp32 -specs=nosys.specs -nostartfiles -Wl,-Ttext=0x00000000 -o "$output_name" $(dirname "$0")/start.S "$@"
-riscv32-unknown-elf-objdump -S -d "$output_name" > "$output_name.dump.txt"
+riscv64-unknown-elf-gcc -I$(dirname "$0")/include -g -static -O0 -march=rv32i -mabi=ilp32 -specs=nosys.specs -nostartfiles -Wl,-Ttext=0x00000000 -o "$output_name" $(dirname "$0")/start.S "$@"
+riscv64-unknown-elf-objdump -S -d "$output_name" > "$output_name.dump.txt"
