@@ -1,0 +1,3 @@
+[submodule "flexpret"]
+	path = flexpret
+	url = git@github.com:lsk567/flexpret.git
