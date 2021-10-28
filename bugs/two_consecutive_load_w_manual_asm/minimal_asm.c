@@ -14,7 +14,7 @@ uint32_t add(uint32_t a, uint32_t b) {
         "lw	t0,%[a]\n\t"
         "lw	t1,%[b]\n\t"
         "add %[c],t0,t1\n\t"
-        : [c] "=rm" (c)
+        : [c] "=r" (c)
         : [a] "rm" (a), [b] "rm" (b)
         : "t0", "t1"
        );

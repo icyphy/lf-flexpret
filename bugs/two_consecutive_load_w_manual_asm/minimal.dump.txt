@@ -17,7 +17,7 @@ _start:
   .option norelax
   la gp, __global_pointer$
    4:	00002197          	auipc	gp,0x2
-   8:	91c18193          	addi	gp,gp,-1764 # 1920 <__global_pointer$>
+   8:	8e818193          	addi	gp,gp,-1816 # 18ec <__global_pointer$>
   .option pop
 
   // set argc, argv
@@ -28,127 +28,106 @@ _start:
 
   // jump to main
   call main
-  14:	098000ef          	jal	ra,ac <main>
+  14:	064000ef          	jal	ra,78 <main>
 
-00000018 <_fp_print>:
-
-// Write a generic value to the tohost CSR
-static inline void write_tohost(uint32_t val) { write_csr(CSR_TOHOST, val); }
-
-// Print the given value in the simulation
-void _fp_print(uint32_t val) {
-  18:	fe010113          	addi	sp,sp,-32 # 20000fe0 <__global_pointer$+0x1ffff6c0>
-  1c:	00812e23          	sw	s0,28(sp)
-  20:	02010413          	addi	s0,sp,32
-  24:	fea42623          	sw	a0,-20(s0)
+00000018 <_fp_finish>:
   write_csr(CSR_TOHOST, 0xbaaabaaa);
-  28:	baaac7b7          	lui	a5,0xbaaac
-  2c:	aaa78793          	addi	a5,a5,-1366 # baaabaaa <__global_pointer$+0xbaaaa18a>
-  30:	51e79073          	csrw	0x51e,a5
   write_csr(CSR_TOHOST, val);
-  34:	fec42783          	lw	a5,-20(s0)
-  38:	51e79073          	csrw	0x51e,a5
 }
-  3c:	00000013          	nop
-  40:	01c12403          	lw	s0,28(sp)
-  44:	02010113          	addi	sp,sp,32
-  48:	00008067          	ret
-
-0000004c <_fp_finish>:
 
 // Finish/stop the simulation
 static inline void _fp_finish() {
-  4c:	ff010113          	addi	sp,sp,-16
-  50:	00812623          	sw	s0,12(sp)
-  54:	01010413          	addi	s0,sp,16
+  18:	ff010113          	addi	sp,sp,-16 # 20000ff0 <__global_pointer$+0x1ffff704>
+  1c:	00812623          	sw	s0,12(sp)
+  20:	01010413          	addi	s0,sp,16
   write_csr(CSR_TOHOST, 0xdeaddead);
-  58:	deade7b7          	lui	a5,0xdeade
-  5c:	ead78793          	addi	a5,a5,-339 # deaddead <__global_pointer$+0xdeadc58d>
-  60:	51e79073          	csrw	0x51e,a5
+  24:	deade7b7          	lui	a5,0xdeade
+  28:	ead78793          	addi	a5,a5,-339 # deaddead <__global_pointer$+0xdeadc5c1>
+  2c:	51e79073          	csrw	0x51e,a5
 }
-  64:	00000013          	nop
-  68:	00c12403          	lw	s0,12(sp)
-  6c:	01010113          	addi	sp,sp,16
-  70:	00008067          	ret
+  30:	00000013          	nop
+  34:	00c12403          	lw	s0,12(sp)
+  38:	01010113          	addi	sp,sp,16
+  3c:	00008067          	ret
 
-00000074 <add>:
+00000040 <add>:
 #define __print(val) ({ \
     write_csr(CSR_TOHOST, 0xbaaabaaa); \
     write_csr(CSR_TOHOST, val); \
 })
 
 uint32_t add(uint32_t a, uint32_t b) {
-  74:	fd010113          	addi	sp,sp,-48
-  78:	02812623          	sw	s0,44(sp)
-  7c:	03010413          	addi	s0,sp,48
-  80:	fca42e23          	sw	a0,-36(s0)
-  84:	fcb42c23          	sw	a1,-40(s0)
+  40:	fd010113          	addi	sp,sp,-48
+  44:	02812623          	sw	s0,44(sp)
+  48:	03010413          	addi	s0,sp,48
+  4c:	fca42e23          	sw	a0,-36(s0)
+  50:	fcb42c23          	sw	a1,-40(s0)
     // uint32_t _a = a;
     // uint32_t _b = b;
     uint32_t c;
     asm volatile (
-  88:	fdc42283          	lw	t0,-36(s0)
-  8c:	fd842303          	lw	t1,-40(s0)
-  90:	006287b3          	add	a5,t0,t1
-  94:	fef42623          	sw	a5,-20(s0)
+  54:	fdc42283          	lw	t0,-36(s0)
+  58:	fd842303          	lw	t1,-40(s0)
+  5c:	006287b3          	add	a5,t0,t1
+  60:	fef42623          	sw	a5,-20(s0)
         "add %[c],t0,t1\n\t"
-        : [c] "=rm" (c)
+        : [c] "=r" (c)
         : [a] "rm" (a), [b] "rm" (b)
         : "t0", "t1"
        );
     return c;
-  98:	fec42783          	lw	a5,-20(s0)
+  64:	fec42783          	lw	a5,-20(s0)
 }
-  9c:	00078513          	mv	a0,a5
-  a0:	02c12403          	lw	s0,44(sp)
-  a4:	03010113          	addi	sp,sp,48
-  a8:	00008067          	ret
+  68:	00078513          	mv	a0,a5
+  6c:	02c12403          	lw	s0,44(sp)
+  70:	03010113          	addi	sp,sp,48
+  74:	00008067          	ret
 
-000000ac <main>:
+00000078 <main>:
 
 int main() {
-  ac:	fe010113          	addi	sp,sp,-32
-  b0:	00112e23          	sw	ra,28(sp)
-  b4:	00812c23          	sw	s0,24(sp)
-  b8:	02010413          	addi	s0,sp,32
+  78:	fe010113          	addi	sp,sp,-32
+  7c:	00112e23          	sw	ra,28(sp)
+  80:	00812c23          	sw	s0,24(sp)
+  84:	02010413          	addi	s0,sp,32
     
     // Load 2 values to a5 separately.
     // And call csrw to output them.
     uint32_t x = 1;
-  bc:	00100793          	li	a5,1
-  c0:	fef42623          	sw	a5,-20(s0)
+  88:	00100793          	li	a5,1
+  8c:	fef42623          	sw	a5,-20(s0)
     __print(x);
-  c4:	baaac7b7          	lui	a5,0xbaaac
-  c8:	aaa78793          	addi	a5,a5,-1366 # baaabaaa <__global_pointer$+0xbaaaa18a>
-  cc:	51e79073          	csrw	0x51e,a5
-  d0:	fec42783          	lw	a5,-20(s0)
-  d4:	51e79073          	csrw	0x51e,a5
+  90:	baaac7b7          	lui	a5,0xbaaac
+  94:	aaa78793          	addi	a5,a5,-1366 # baaabaaa <__global_pointer$+0xbaaaa1be>
+  98:	51e79073          	csrw	0x51e,a5
+  9c:	fec42783          	lw	a5,-20(s0)
+  a0:	51e79073          	csrw	0x51e,a5
 
     uint32_t y = 2;
-  d8:	00200793          	li	a5,2
-  dc:	fef42423          	sw	a5,-24(s0)
+  a4:	00200793          	li	a5,2
+  a8:	fef42423          	sw	a5,-24(s0)
     __print(y);
-  e0:	baaac7b7          	lui	a5,0xbaaac
-  e4:	aaa78793          	addi	a5,a5,-1366 # baaabaaa <__global_pointer$+0xbaaaa18a>
-  e8:	51e79073          	csrw	0x51e,a5
-  ec:	fe842783          	lw	a5,-24(s0)
-  f0:	51e79073          	csrw	0x51e,a5
+  ac:	baaac7b7          	lui	a5,0xbaaac
+  b0:	aaa78793          	addi	a5,a5,-1366 # baaabaaa <__global_pointer$+0xbaaaa1be>
+  b4:	51e79073          	csrw	0x51e,a5
+  b8:	fe842783          	lw	a5,-24(s0)
+  bc:	51e79073          	csrw	0x51e,a5
     
     uint32_t z = add(x, y);
-  f4:	fe842583          	lw	a1,-24(s0)
-  f8:	fec42503          	lw	a0,-20(s0)
-  fc:	f79ff0ef          	jal	ra,74 <add>
- 100:	fea42223          	sw	a0,-28(s0)
+  c0:	fe842583          	lw	a1,-24(s0)
+  c4:	fec42503          	lw	a0,-20(s0)
+  c8:	f79ff0ef          	jal	ra,40 <add>
+  cc:	fea42223          	sw	a0,-28(s0)
     __print(z);
- 104:	baaac7b7          	lui	a5,0xbaaac
- 108:	aaa78793          	addi	a5,a5,-1366 # baaabaaa <__global_pointer$+0xbaaaa18a>
- 10c:	51e79073          	csrw	0x51e,a5
- 110:	fe442783          	lw	a5,-28(s0)
- 114:	51e79073          	csrw	0x51e,a5
+  d0:	baaac7b7          	lui	a5,0xbaaac
+  d4:	aaa78793          	addi	a5,a5,-1366 # baaabaaa <__global_pointer$+0xbaaaa1be>
+  d8:	51e79073          	csrw	0x51e,a5
+  dc:	fe442783          	lw	a5,-28(s0)
+  e0:	51e79073          	csrw	0x51e,a5
     
     // Terminate the simulation.
     // Put a while loop to make sure no unwanted side effects.
     _fp_finish();
- 118:	f35ff0ef          	jal	ra,4c <_fp_finish>
+  e4:	f35ff0ef          	jal	ra,18 <_fp_finish>
     while(1) {}
- 11c:	0000006f          	j	11c <main+0x70>
+  e8:	0000006f          	j	e8 <main+0x70>
