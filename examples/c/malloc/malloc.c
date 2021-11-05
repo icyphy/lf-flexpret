@@ -4,6 +4,11 @@
 
 #include <_syslist.h>
 
+#define __print(val) ({ \
+    write_csr(CSR_TOHOST, 0xbaaabaaa); \
+    write_csr(CSR_TOHOST, val); \
+})
+
 void *
 _sbrk (incr)
      int incr;
@@ -22,11 +27,11 @@ _sbrk (incr)
 }
 
 int main() {
-    _fp_print(4);
+    __print(4);
     uint32_t* p = malloc(sizeof(uint32_t));
     *p = 100;
-    _fp_print(5);
-    _fp_print(*p);
+    __print(5);
+    __print(*p);
     free(p);
 
     // Terminate the simulation
