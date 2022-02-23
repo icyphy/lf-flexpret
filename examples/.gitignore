@@ -1,9 +1,0 @@
-# Ignore all the executables.
-# (Ignore everything except things with extensions and directories.)
-*
-!*.*
-!*/
-
-# Then ignore vcd and txt files.
-*.vcd
-*.txt
