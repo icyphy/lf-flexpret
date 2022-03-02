@@ -1,0 +1,1 @@
+/usr/bin/cc -O3 -DNDEBUG   CMakeFiles/Minimal.dir/Minimal.c.o CMakeFiles/Minimal.dir/core/platform/lf_linux_support.c.o CMakeFiles/Minimal.dir/ctarget.c.o CMakeFiles/Minimal.dir/core/mixed_radix.c.o  -o Minimal 
