@@ -29,8 +29,7 @@ include_directories(${CoreLib}/platform)
 include_directories(${CoreLib}/federated)
 set(LF_MAIN_TARGET Minimal)
 # Declare a new executable target and list all its sources
-add_executable(${LF_MAIN_TARGET} Minimal.c ${CoreLib}/platform/${LF_PLATFORM_FILE} ctarget.c
-core/mixed_radix.c)
+add_executable(${LF_MAIN_TARGET} Minimal.c ${CoreLib}/platform/${LF_PLATFORM_FILE} ctarget.c core/mixed_radix.c ../../tinyalloc.c)
 
 install(TARGETS ${LF_MAIN_TARGET}
         RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})

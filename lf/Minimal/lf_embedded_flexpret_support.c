@@ -27,6 +27,7 @@ THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <stdlib.h>
 #include "lf_embedded_flexpret_support.h"
 #include "../platform.h"
+#include "tinyalloc.h"
 
 // FIXME: Implement the function below.
 /**
