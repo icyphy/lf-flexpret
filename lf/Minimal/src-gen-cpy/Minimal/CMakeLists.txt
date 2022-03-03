@@ -1,12 +1,21 @@
 cmake_minimum_required(VERSION 3.13)
+
+## Need this for cross-compiling
+set(CMAKE_TRY_COMPILE_TARGET_TYPE "STATIC_LIBRARY")
+
 project(Minimal LANGUAGES C)
 
-SET(CMAKE_CXX_FLAGS_DEBUG "-O0")
-SET(CMAKE_C_FLAGS_DEBUG "-O0")
+## Add custom gcc flags
+SET(GCC_COVERAGE_COMPILE_FLAGS "-I../../../../../flexpret/programs/lib/include/ -g -static -O0 -march=rv32i -mabi=ilp32 -nostartfiles")
+# SET(GCC_COVERAGE_COMPILE_FLAGS "-g -static -O0 -march=rv32i -mabi=ilp32 --specs=nosys.specs")
+SET(CMAKE_C_FLAGS  "${GCC_COVERAGE_COMPILE_FLAGS}")
+SET(CMAKE_CXX_FLAGS  "${GCC_COVERAGE_COMPILE_FLAGS}")
 
-# Adding custom gcc flags
-# SET(CMAKE_CXX_LIB_FLAGS "-nodefaultlibs")
-# add_definitions(${CMAKE_CXX_LIB_FLAGS})
+## Add custom linker flag
+set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -T ../../../flexpret.ld")
+
+## Check if the script if updated.
+message(STATUS "hello==============================================")
 
 # Require C11
 set(CMAKE_C_STANDARD 11)
@@ -28,8 +37,10 @@ include_directories(${CoreLib})
 include_directories(${CoreLib}/platform)
 include_directories(${CoreLib}/federated)
 set(LF_MAIN_TARGET Minimal)
+
 # Declare a new executable target and list all its sources
-add_executable(${LF_MAIN_TARGET} Minimal.c ${CoreLib}/platform/${LF_PLATFORM_FILE} ctarget.c core/mixed_radix.c ../../tinyalloc.c)
+## Add tinyalloc here.
+add_executable(${LF_MAIN_TARGET} Minimal.c ${CoreLib}/platform/${LF_PLATFORM_FILE} ctarget.c core/mixed_radix.c ../../tinyalloc.c ../../start.S)
 
 install(TARGETS ${LF_MAIN_TARGET}
         RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})

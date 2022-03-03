@@ -10,7 +10,7 @@
 int main(int argc, char* argv[]) {
     extern char end; // Set by linker.
     // Allocate 128 bits (16 bytes) for the heap.
-    ta_init(&end, &end+12800, 128, 16, 4);
+    ta_init(&end, &end+12800, 256, 16, 4);
     return lf_reactor_c_main(argc, argv);
 }
 // =============== START reactor class Minimal
@@ -28,7 +28,8 @@ void minimalreaction_function_0(void* instance_args) {
     ((self_base_t*)self)->executing_reaction = &self->_lf__reaction_0;
     
     #pragma GCC diagnostic pop
-    /*Correspondence: Range: [(6, 8), (7, 4)) -> Range: [(0, 0), (1, 4)) (src=/home/lfvmu/lf_flexpret/lf/Minimal/Minimal.lf)*/printf("Hello World. %d\n", self->s);
+    /*Correspondence: Range: [(6, 8), (7, 4)) -> Range: [(0, 0), (1, 4)) (src=/home/lfvmu/lf_flexpret/lf/Minimal/Minimal.lf)*/
+    // printf("Hello World. %d\n", self->s);
         
 }
 minimal_self_t* new_Minimal() {

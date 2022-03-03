@@ -42,6 +42,7 @@ THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef PLATFORM_H
 #define PLATFORM_H
 
+/*
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
    // Windows platforms
    #include "platform/lf_windows_support.h"
@@ -51,7 +52,6 @@ THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #elif __linux__
     // Linux
     // #include "platform/lf_linux_support.h"
-    #include "../../../lf_embedded_flexpret_support.h"
 #elif __unix__ // all unices not caught above
     // Unix
     #include "platform/lf_POSIX_threads_support.h"
@@ -64,6 +64,10 @@ THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #else
 #error "Platform not supported"
 #endif
+*/
+
+//// FIXME: Need to replace this hack with a proper mechanism.
+#include "../../../lf_embedded_flexpret_support.h"
 
 #ifdef NUMBER_OF_WORKERS
 #define LF_TIMEOUT _LF_TIMEOUT

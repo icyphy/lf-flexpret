@@ -29,7 +29,8 @@ THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "../platform.h"
 #include "tinyalloc.h"
 
-#define CLOCK_FREQ 10000000 //FIXME: Check the hardware implementation
+#define BILLION    1000000000LL
+#define CLOCK_FREQ 10000000LL //FIXME: Check the hardware implementation
 // FIXME: Implement the function below.
 /**
  * Fetch the value of an internal (and platform-specific) physical clock and 
@@ -41,6 +42,7 @@ THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * @return 0 for success, or -1 for failure
  */
 int lf_clock_gettime(instant_t* t) {
+    /*
 	uint32_t cycle_high;
 	uint32_t cycle_low;
 	asm(
@@ -54,10 +56,10 @@ int lf_clock_gettime(instant_t* t) {
 	: "t0" //clobbers
 	);
 
-	const uint32_t CYCLES_PER_NANOSEC = CLOCK_FREQ / BILLION;
-	const float NSEC_PER_CYCLE = BILLION / CLOCK_FREQ;
-	//FIXME: Put the nanosec into instant_t *t
+    uint64_t total_cycles = (uint64_t) cycle_high << 32 | cycle_low;
+    *t = (instant_t) (total_cycles * BILLION / CLOCK_FREQ);
 	return 0;
+    */
 }
 
 /**
@@ -67,12 +69,15 @@ int lf_clock_gettime(instant_t* t) {
  *  set appropriately (see `man 2 clock_nanosleep`).
  */
 int lf_nanosleep(instant_t requested_time) {
+    /*
 	instant_t t;
 	lf_clock_gettime(&t);
-	while (t < t + requested_time) {
+    instant_t expire_time = t + requested_time;
+	while (t < expire_time) {
 		lf_clock_gettime(&t);
 	}
 	return 0;
+    */
 }
 
 void lf_initialize_clock() {
@@ -91,3 +96,8 @@ void *malloc(size_t size) {
 void free(void *ptr) {
 	ta_free(ptr);
 }
+
+// Overwrite print functions with NoOp.
+int printf(const char *format, ...) {}
+int snprintf(char *str, size_t size, const char *format, ...) {}
+int vprintf(const char *format, va_list ap) {}
