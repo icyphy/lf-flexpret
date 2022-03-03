@@ -28,6 +28,7 @@ THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "lf_embedded_flexpret_support.h"
 #include "../platform.h"
 
+#define CLOCK_FREQ 10000000 //FIXME: Check the hardware implementation
 // FIXME: Implement the function below.
 /**
  * Fetch the value of an internal (and platform-specific) physical clock and 
@@ -39,10 +40,25 @@ THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * @return 0 for success, or -1 for failure
  */
 int lf_clock_gettime(instant_t* t) {
+	uint32_t cycle_high;
+	uint32_t cycle_low;
+	asm(
+	"read_cycle: \n"
+		"rdcycleh t0\n"
+		"rdcycle %1\n"
+		"rdcycleh %0\n"
+		"bne t0 %0 read_cycle"
+	: "=r"(cycle_high), "=r"(cycle_low) //outputs
+	:// inputs
+	: "t0" //clobbers
+	);
+
+	const uint32_t CYCLES_PER_NANOSEC = CLOCK_FREQ / BILLION;
+	const float NSEC_PER_CYCLE = BILLION / CLOCK_FREQ;
+	//FIXME: Put the nanosec into instant_t *t
 	return 0;
 }
 
-// FIXME: Implement the function below.
 /**
  * Pause execution for a number of nanoseconds.
  *
@@ -50,6 +66,11 @@ int lf_clock_gettime(instant_t* t) {
  *  set appropriately (see `man 2 clock_nanosleep`).
  */
 int lf_nanosleep(instant_t requested_time) {
+	instant_t t;
+	lf_clock_gettime(&t);
+	while (t < t + requested_time) {
+		lf_clock_gettime(&t);
+	}
 	return 0;
 }
 
