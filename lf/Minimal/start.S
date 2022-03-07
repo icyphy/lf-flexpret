@@ -12,8 +12,8 @@ _start:
   .option pop
 
   // set argc, argv
-  li a0, 0
-  li a1, 0
+  // li a0, 0x0
+  // li a1, 0x0
 
   // jump to main
   call main
