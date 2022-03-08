@@ -8,15 +8,12 @@ project(Minimal LANGUAGES C ASM)
 
 ## Add custom gcc flags
 # SET(GCC_COVERAGE_COMPILE_FLAGS "-I../../../../../flexpret/programs/lib/include/ -g -static -O0 -march=rv32i -mabi=ilp32 -nostartfiles")
-SET(GCC_COVERAGE_COMPILE_FLAGS "-I../../../../../flexpret/programs/lib/include/ -g -static -O0 -march=rv32i -mabi=ilp32 -nostartfiles --specs=nosys.specs")
+SET(GCC_COVERAGE_COMPILE_FLAGS "-I../../../../../flexpret/programs/lib/include/ -g -static -O1 -march=rv32i -mabi=ilp32 -nostartfiles --specs=nosys.specs")
 SET(CMAKE_C_FLAGS  "${GCC_COVERAGE_COMPILE_FLAGS}")
 SET(CMAKE_CXX_FLAGS  "${GCC_COVERAGE_COMPILE_FLAGS}")
 
 ## Add custom linker flag
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -T ../../../flexpret.ld")
-
-## Check if the script if updated.
-message(STATUS "hello==============================================")
 
 # Require C11
 set(CMAKE_C_STANDARD 11)
