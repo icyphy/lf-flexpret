@@ -158,10 +158,13 @@ void debug_print(char* format, ...);
  * (e.g., -O2 for gcc) is used as long as the arguments passed to
  * it do not themselves incur significant overhead to evaluate.
  */
+#define DEBUG_PRINT(format, ...)
+/*
 #define DEBUG_PRINT(format, ...) \
             do { if(LOG_LEVEL >= LOG_LEVEL_DEBUG) { \
                     debug_print(format, ##__VA_ARGS__); \
                 } } while (0)
+*/
 
 /**
  * Print the error defined by the errno variable with the

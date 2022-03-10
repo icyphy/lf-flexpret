@@ -13,8 +13,11 @@ int main(int argc, char* argv[]) {
     _fp_print(1);
     extern char end; // Set by linker.
     // Allocate 128 bits (16 bytes) for the heap.
-    ta_init(&end, &end+4*10003, 2500, 4, 4);
+    // ta_init(&end, &end+4*16003, 2500, 4, 4);
     // ta_init(&end, &end+4*19, 4, 4, 4);
+    // FIXME: Some tuning of the parameters seems necessary.
+    // FIXME: Write unit tests for multiple callocs.
+    ta_init(&end, (const void*)0x20000000+0x3E800, 1000, 64, 4);
 
     // return lf_reactor_c_main(argc, argv);
     _fp_print(argc);
@@ -76,8 +79,10 @@ trigger_t* _lf_action_for_port(int port_id) {
     return NULL;
 }
 void _lf_initialize_trigger_objects() {
+    _fp_print(400);
     // Initialize the _lf_clock
     lf_initialize_clock();
+    _fp_print(401);
     
     int _lf_startup_reactions_count = 0;
     int _lf_shutdown_reactions_count = 0;
@@ -85,7 +90,9 @@ void _lf_initialize_trigger_objects() {
     int _lf_tokens_with_ref_count_count = 0;
     minimal_self_t* minimal_self[1];
     // ***** Start initializing Minimal of class Minimal
+    _fp_print(402);
     minimal_self[0] = new_Minimal();
+    _fp_print(403);
     { // For scoping
         static int _initial = 1;
         minimal_self[0]->s = _initial;
@@ -121,6 +128,7 @@ void _lf_initialize_trigger_objects() {
         // deadline 140737488355327 shifted left 16 bits.
         minimal_self[0]->_lf__reaction_0.index = 0x7fffffffffff0000LL;
     }
+    _fp_print(402);
     
 }
 void _lf_trigger_startup_reactions() {

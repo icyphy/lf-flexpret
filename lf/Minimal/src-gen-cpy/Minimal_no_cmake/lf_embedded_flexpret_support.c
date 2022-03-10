@@ -91,6 +91,13 @@ void *malloc(size_t size) {
 }
 
 /**
+ * Allocate a requested memory and return a pointer to it.
+ */
+void *calloc(size_t nitems, size_t size) {
+	return ta_calloc(nitems, size);
+}
+
+/**
  * Deallocates the memory previously allocated by a call to calloc, malloc, or realloc.
  */
 void free(void *ptr) {

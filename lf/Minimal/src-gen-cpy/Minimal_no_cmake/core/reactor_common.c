@@ -178,17 +178,30 @@ void set_federation_id(char* fid);
  */
 void* _lf_allocate(
 		size_t count, size_t size, struct allocation_record_t** head) {
+    _fp_print(500);
 	void *mem = calloc(count, size);
+    _fp_print(501);
+    _fp_print(count);
+    _fp_print(size);
     if (mem == NULL) error_print_and_exit("Out of memory!");
+    _fp_print(502);
 	if (head != NULL) {
-		struct allocation_record_t* record
-				= (allocation_record_t*)calloc(1, sizeof(allocation_record_t));
+        _fp_print(503);
+		struct allocation_record_t* record;
+        _fp_print(503);
+		void *ptr = calloc(count, size);
+		// void *ptr = calloc(1, sizeof(allocation_record_t));
+        _fp_print(503);
+        record = (allocation_record_t*) ptr;
+        _fp_print(504);
 		if (record == NULL) error_print_and_exit("Out of memory!");
+        _fp_print(505);
 		record->allocated = mem;
 		allocation_record_t* tmp = *head; // Previous head of the list or NULL.
 		*head = record;                   // New head of the list.
 		record->next = tmp;
 	}
+    _fp_print(506);
 	return mem;
 }
 
@@ -1794,10 +1807,19 @@ char** default_argv = NULL;
  * @return 1 if the arguments processed successfully, 0 otherwise.
  */
 int process_args(int argc, char* argv[]) {
+    _fp_print(112);
+    _fp_print(argc);
+    return 1;
+}
+/*
+// argc behaves erratically in the original process_args.
+int process_args(int argc, char* argv[]) {
+    _fp_print(112);
+    _fp_print(argc);
     int i = 1;
     while (i < argc) {
         _fp_print(111);
-        _fp_print((uint32_t) argc);
+        _fp_print(argc);
         char* arg = argv[i++];
         if (strcmp(arg, "-f") == 0 || strcmp(arg, "--fast") == 0) {
             if (argc < i + 1) {
@@ -1931,12 +1953,14 @@ int process_args(int argc, char* argv[]) {
     }
     return 1;
 }
+*/
 
 /**
  * Initialize the priority queues and set logical time to match
  * physical time. This also prints a message reporting the start time.
  */
 void initialize() {
+    _fp_print(300);
     _lf_count_payload_allocations = 0;
     _lf_count_token_allocations = 0;
 
@@ -1947,19 +1971,25 @@ void initialize() {
     // the level in the 16 least significant bits.
     reaction_q = pqueue_init(INITIAL_REACT_QUEUE_SIZE, in_reverse_order, get_reaction_index,
             get_reaction_position, set_reaction_position, reaction_matches, print_reaction);    
+    _fp_print(301);
 
     event_q = pqueue_init(INITIAL_EVENT_QUEUE_SIZE, in_reverse_order, get_event_time,
             get_event_position, set_event_position, event_matches, print_event);
+    _fp_print(302);
 	// NOTE: The recycle and next queue does not need to be sorted. But here it is.
     recycle_q = pqueue_init(INITIAL_EVENT_QUEUE_SIZE, in_no_particular_order, get_event_time,
             get_event_position, set_event_position, event_matches, print_event);
+    _fp_print(303);
     next_q = pqueue_init(INITIAL_EVENT_QUEUE_SIZE, in_no_particular_order, get_event_time,
             get_event_position, set_event_position, event_matches, print_event);
+    _fp_print(304);
 
     // Initialize the trigger table.
     _lf_initialize_trigger_objects();
+    _fp_print(305);
 
     physical_start_time = get_physical_time();
+    _fp_print(306);
     current_tag.time = physical_start_time;
     start_time = current_tag.time;
 
@@ -1975,6 +2005,7 @@ void initialize() {
         // A duration has been specified. Calculate the stop time.
         _lf_set_stop_tag((tag_t) {.time = current_tag.time + duration, .microstep = 0});
     }
+    _fp_print(307);
 }
 
 /**

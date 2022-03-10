@@ -49,6 +49,7 @@ typedef int64_t _interval_t;
 typedef uint32_t _microstep_t;
 
 void *malloc(size_t size);
+void *calloc(size_t nitems, size_t size);
 void free(void *ptr);
 
 int printf(const char *format, ...);

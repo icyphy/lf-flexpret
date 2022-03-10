@@ -352,26 +352,37 @@ bool _lf_is_blocked_by_executing_reaction() {
  */
 int lf_reactor_c_main(int argc, char* argv[]) {
     _fp_print(2);
+    _fp_print(argc);
     // Invoke the function that optionally provides default command-line options.
     _lf_set_default_command_line_options();
     _fp_print(3);
+    _fp_print(argc);
 
     DEBUG_PRINT("Processing command line arguments.");
-    if (process_args(default_argc, default_argv)
-            && process_args(argc, argv)) {
+    // if (process_args(default_argc, default_argv)
+    //         && process_args(argc, argv)) {
+    if (process_args(argc, argv)) {
         _fp_print(4);
+        _fp_print(argc);
         DEBUG_PRINT("Processed command line arguments.");
         DEBUG_PRINT("Registering the termination function.");
+
+        /*
+        // FIXME: atexit() not implemented. 
         if (atexit(termination) != 0) {
             warning_print("Failed to register termination function!");
         }
+        */
+
         // The above handles only "normal" termination (via a call to exit).
         // As a consequence, we need to also trap ctrl-C, which issues a SIGINT,
         // and cause it to call exit.
-        signal(SIGINT, exit);
+        // FIXME: signal() not implemented. 
+        // signal(SIGINT, exit);
         _fp_print(5);
 
         DEBUG_PRINT("Initializing.");
+        _fp_print(5);
         initialize(); // Sets start_time.
         _fp_print(6);
         current_tag = (tag_t){.time = start_time, .microstep = 0u};
