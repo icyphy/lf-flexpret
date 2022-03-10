@@ -67,7 +67,7 @@ THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 //// FIXME: Need to replace this hack with a proper mechanism.
-#include "../../../lf_embedded_flexpret_support.h"
+#include "../lf_embedded_flexpret_support.h"
 
 #ifdef NUMBER_OF_WORKERS
 #define LF_TIMEOUT _LF_TIMEOUT

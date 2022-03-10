@@ -39,6 +39,7 @@ THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqueue.c"
 #include "util.c"
 #include <flexpret_io.h>
+#include "../tinyalloc.h"
 
 /** 
  * Indicator of whether to wait for physical time to match logical time.
@@ -189,8 +190,8 @@ void* _lf_allocate(
         _fp_print(503);
 		struct allocation_record_t* record;
         _fp_print(503);
-		void *ptr = calloc(count, size);
-		// void *ptr = calloc(1, sizeof(allocation_record_t));
+        _fp_print(sizeof(allocation_record_t));
+		void *ptr = ta_calloc(1, sizeof(allocation_record_t));
         _fp_print(503);
         record = (allocation_record_t*) ptr;
         _fp_print(504);

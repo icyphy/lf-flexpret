@@ -17,7 +17,7 @@ int main(int argc, char* argv[]) {
     // ta_init(&end, &end+4*19, 4, 4, 4);
     // FIXME: Some tuning of the parameters seems necessary.
     // FIXME: Write unit tests for multiple callocs.
-    ta_init(&end, (const void*)0x20000000+0x3E800, 1000, 64, 4);
+    ta_init(&end, (const void*)(0x20000000+0x3E800), 50, 16, 4);
 
     // return lf_reactor_c_main(argc, argv);
     _fp_print(argc);
