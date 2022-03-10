@@ -1965,7 +1965,8 @@ void initialize() {
     struct timespec physical_time_timespec = {physical_start_time / BILLION, physical_start_time % BILLION};
 
     printf("---- Start execution at time %s---- plus %ld nanoseconds.\n",
-            ctime(&physical_time_timespec.tv_sec), physical_time_timespec.tv_nsec);
+           // ctime(&physical_time_timespec.tv_sec), physical_time_timespec.tv_nsec);
+           0, physical_time_timespec.tv_nsec);
     
     if (duration >= 0LL) {
         // A duration has been specified. Calculate the stop time.
