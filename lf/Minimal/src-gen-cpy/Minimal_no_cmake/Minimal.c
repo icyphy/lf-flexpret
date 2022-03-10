@@ -13,12 +13,15 @@ int main(int argc, char* argv[]) {
     _fp_print(1);
     extern char end; // Set by linker.
     // Allocate 128 bits (16 bytes) for the heap.
-    // ta_init(&end, &end+4*12003, 2500, 4, 4);
-    ta_init(&end, &end+4*19, 4, 4, 4);
+    ta_init(&end, &end+4*10003, 2500, 4, 4);
+    // ta_init(&end, &end+4*19, 4, 4, 4);
+
     // return lf_reactor_c_main(argc, argv);
-    _fp_print(2);
+    _fp_print(argc);
+    lf_reactor_c_main(argc, argv);
 
     // Terminate the simulation
+    _fp_print(2);
     _fp_finish();
     while(1) {}
     __builtin_unreachable();

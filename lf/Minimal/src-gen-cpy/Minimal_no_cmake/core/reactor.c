@@ -35,6 +35,7 @@ THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "reactor_common.c"
 #include "platform.h"
 #include <signal.h> // To trap ctrl-c and invoke termination().
+#include <flexpret_io.h>
 //#include <assert.h>
 
 /**
@@ -249,6 +250,7 @@ int _lf_do_step() {
 // the keepalive command-line option has not been given.
 // Otherwise, return 1.
 int next() {
+    _fp_print(11);
     event_t* event = (event_t*)pqueue_peek(event_q);
     //pqueue_dump(event_q, event_q->prt);
     // If there is no next event and -keepalive has been specified
@@ -349,12 +351,15 @@ bool _lf_is_blocked_by_executing_reaction() {
  * at compile time.
  */
 int lf_reactor_c_main(int argc, char* argv[]) {
+    _fp_print(2);
     // Invoke the function that optionally provides default command-line options.
     _lf_set_default_command_line_options();
+    _fp_print(3);
 
     DEBUG_PRINT("Processing command line arguments.");
     if (process_args(default_argc, default_argv)
             && process_args(argc, argv)) {
+        _fp_print(4);
         DEBUG_PRINT("Processed command line arguments.");
         DEBUG_PRINT("Registering the termination function.");
         if (atexit(termination) != 0) {
@@ -364,23 +369,30 @@ int lf_reactor_c_main(int argc, char* argv[]) {
         // As a consequence, we need to also trap ctrl-C, which issues a SIGINT,
         // and cause it to call exit.
         signal(SIGINT, exit);
+        _fp_print(5);
 
         DEBUG_PRINT("Initializing.");
         initialize(); // Sets start_time.
+        _fp_print(6);
         current_tag = (tag_t){.time = start_time, .microstep = 0u};
         _lf_execution_started = true;
+        _fp_print(7);
         _lf_trigger_startup_reactions();
+        _fp_print(8);
         _lf_initialize_timers(); 
+        _fp_print(9);
         // If the stop_tag is (0,0), also insert the shutdown
         // reactions. This can only happen if the timeout time
         // was set to 0.
         if (compare_tags(current_tag, stop_tag) >= 0) {
             _lf_trigger_shutdown_reactions(); // _lf_trigger_shutdown_reactions();
+            _fp_print(10);
         }
         DEBUG_PRINT("Running the program's main loop.");
         // Handle reactions triggered at time (T,m).
         if (_lf_do_step()) {
             while (next() != 0);
+            _fp_print(12);
         }
         return 0;
     } else {

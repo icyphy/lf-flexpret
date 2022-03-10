@@ -49,7 +49,12 @@ typedef int64_t _interval_t;
 typedef uint32_t _microstep_t;
 
 void *malloc(size_t size);
-
 void free(void *ptr);
 
+int printf(const char *format, ...);
+int puts(const char *str);
+int sprintf(char *str, const char *format, ...);
+int snprintf(char *str, size_t size, const char *format, ...);
+int vprintf(const char *format, va_list ap);
+int vfprintf(FILE *stream, const char *format, va_list arg);
 #endif // LF_BAREMETAL_RISCV_SUPPORT_H

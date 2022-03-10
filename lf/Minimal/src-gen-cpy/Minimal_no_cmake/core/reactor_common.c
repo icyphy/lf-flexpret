@@ -38,6 +38,7 @@ THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "tag.c"
 #include "pqueue.c"
 #include "util.c"
+#include <flexpret_io.h>
 
 /** 
  * Indicator of whether to wait for physical time to match logical time.
@@ -1795,6 +1796,8 @@ char** default_argv = NULL;
 int process_args(int argc, char* argv[]) {
     int i = 1;
     while (i < argc) {
+        _fp_print(111);
+        _fp_print((uint32_t) argc);
         char* arg = argv[i++];
         if (strcmp(arg, "-f") == 0 || strcmp(arg, "--fast") == 0) {
             if (argc < i + 1) {

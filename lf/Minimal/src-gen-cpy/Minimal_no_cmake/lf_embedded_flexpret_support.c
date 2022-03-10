@@ -99,5 +99,8 @@ void free(void *ptr) {
 
 // Overwrite print functions with NoOp.
 int printf(const char *format, ...) {}
+int puts(const char *str) {}
+int sprintf(char *str, const char *format, ...) {}
 int snprintf(char *str, size_t size, const char *format, ...) {}
 int vprintf(const char *format, va_list ap) {}
+int vfprintf(FILE *stream, const char *format, va_list arg) {}
