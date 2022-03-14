@@ -191,7 +191,7 @@ void* _lf_allocate(
 		struct allocation_record_t* record;
         _fp_print(503);
         _fp_print(sizeof(allocation_record_t));
-		void *ptr = ta_calloc(1, sizeof(allocation_record_t));
+		void *ptr = calloc(1, sizeof(allocation_record_t));
         _fp_print(503);
         record = (allocation_record_t*) ptr;
         _fp_print(504);

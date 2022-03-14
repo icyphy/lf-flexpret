@@ -136,6 +136,8 @@ void terminate_execution() {}
 int main(int argc, char* argv[]) {
     _fp_print(1);
     extern char end; // Set by linker.
+    extern char text_end; // Set by linker.
+    _fp_print(&text_end);
     // Allocate 128 bits (16 bytes) for the heap.
     // ta_init(&end, &end+4*16003, 2500, 4, 4);
     // ta_init(&end, &end+4*19, 4, 4, 4);
@@ -149,8 +151,8 @@ int main(int argc, char* argv[]) {
 
     // return lf_reactor_c_main(argc, argv);
     _fp_print(argc);
-    lf_reactor_c_main(argc, argv);
-    // minimal_self_t* ptr = new_Minimal();
+    // lf_reactor_c_main(argc, argv);
+    minimal_self_t* ptr = new_Minimal();
 
     // Terminate the simulation
     _fp_print(2);

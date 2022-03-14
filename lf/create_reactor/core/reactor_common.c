@@ -196,6 +196,7 @@ void* _lf_allocate(
         _fp_print(sizeof(allocation_record_t));
 		void *ptr = ta_calloc(1, sizeof(allocation_record_t));
         _fp_print(503);
+        _fp_print(ptr);
         record = (allocation_record_t*) ptr;
         _fp_print(504);
 		if (record == NULL) error_print_and_exit("Out of memory!");
