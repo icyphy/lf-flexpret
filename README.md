@@ -5,13 +5,13 @@
 
 (Optional) To skip the setup, you can use a pre-built [Ubuntu VM image](https://drive.google.com/file/d/1-up7AZVIdNj_yFmq8U6EUC5M5qc8zlSB/view?usp=sharing) with most of the dependencies installed. Follow [these instructions](https://leaf-enquiry-8f7.notion.site/Adjusting-the-VM-6ef662f5649d43128417c4f8acab0b6e) to adjust the VM image.
 
-1. Install the [RISC-V GNU toolchain](https://xpack.github.io/riscv-none-embed-gcc/)
+1. Install the [RISC-V GNU toolchain](https://github.com/pretis/flexpret#risc-v-compiler)
 
 2. Install [Lingua Franca](https://github.com/lf-lang/lingua-franca/wiki/Downloading-and-Building)
 
 3. Clone this repo with the `flexpret` submodule
 ```bash
-git clone https://github.com/lsk567/lf_flexpret.git
+git clone https://github.com/lsk567/lf-flexpret.git
 git submodule update --init --recursive
 ```
 
