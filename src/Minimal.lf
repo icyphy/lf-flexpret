@@ -1,0 +1,8 @@
+target C {
+    threading: false,
+    build: "../scripts/build_flexpret_unix.sh"
+};
+
+main reactor {
+    reaction(startup) {==}
+}
