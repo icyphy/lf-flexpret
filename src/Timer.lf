@@ -1,0 +1,17 @@
+// FIXME: Does not work on FlexPRET yet.
+target C {
+    threading: false,
+    build: "../scripts/build_flexpret_unix.sh",
+    timeout: 10 sec
+};
+
+preamble {=
+    #include <flexpret_io.h>
+=}
+
+main reactor {
+    timer t(0, 100 ms);
+    reaction(t) {=
+        _fp_print(1);
+    =}
+}

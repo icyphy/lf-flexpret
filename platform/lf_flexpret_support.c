@@ -30,9 +30,6 @@ THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "../platform.h"
 #include "../tinyalloc.h"
 
-#define BILLION    1000000000LL
-#define CLOCK_FREQ 10000000LL //FIXME: Check the hardware implementation
-// FIXME: Implement the function below.
 /**
  * Fetch the value of an internal (and platform-specific) physical clock and 
  * store it in `t`.
@@ -54,13 +51,24 @@ int lf_clock_gettime(instant_t* t) {
  * @return 0 for success, or -1 for failure. In case of failure, errno will be
  *  set appropriately (see `man 2 clock_nanosleep`).
  */
-int lf_nanosleep(instant_t requested_time) {
+int lf_sleep(instant_t requested_time) {
 	instant_t t;
 	lf_clock_gettime(&t);
     instant_t expire_time = t + requested_time;
 	while (t < expire_time) {
 		lf_clock_gettime(&t);
 	}
+	return 0;
+}
+
+/**
+ * @brief Sleep until the given wakeup time.
+ * 
+ * @param wakeup_time The time instant at which to wake up.
+ * @return int 0 if sleep completed, or -1 if it was interrupted.
+ */
+int lf_sleep_until(instant_t wakeup_time) {
+	// FIXME: implement using delay until.
 	return 0;
 }
 
@@ -97,3 +105,29 @@ int sprintf(char *str, const char *format, ...) {}
 int snprintf(char *str, size_t size, const char *format, ...) {}
 int vprintf(const char *format, va_list ap) {}
 int vfprintf(FILE *stream, const char *format, va_list arg) {}
+
+// Functions for marking critical sections
+int lf_critical_section_enter() {
+	// TODO: disable interrupts.
+    return 0;
+}
+
+int lf_critical_section_exit() {
+	// TODO: enable interrupts.
+    return 0;
+}
+
+/**
+ * @brief Do nothing. On the NRF, sleep interruptions are recorded in
+ * the function _lf_timer_event_handler. Whenever sleep gets interrupted,
+ * the next function is re-entered to make sure the event queue gets 
+ * checked again.
+ * @return 0 
+ */
+int lf_notify_of_event() {
+    // FIXME: record notifications so that we can immediately
+    // restart the timer in case the interrupt was unrelated
+    // to the scheduling of a new event.
+    // Issue: https://github.com/icyphy/lf-buckler/issues/15
+	return 0;
+}

@@ -18,6 +18,10 @@ cp $PROJECT_ROOT/platform/platform.h $LF_SOURCE_GEN_DIRECTORY/core/
 cp $PROJECT_ROOT/platform/start.S $LF_SOURCE_GEN_DIRECTORY/core/
 cp $PROJECT_ROOT/platform/tinyalloc/tinyalloc.c $LF_SOURCE_GEN_DIRECTORY/core/
 cp $PROJECT_ROOT/platform/tinyalloc/tinyalloc.h $LF_SOURCE_GEN_DIRECTORY/core/
+# FIXME: Try to remove the following by building support in the compiler.
+cp $PROJECT_ROOT/platform/reactor.c $LF_SOURCE_GEN_DIRECTORY/core/
+cp $PROJECT_ROOT/platform/reactor_common.c $LF_SOURCE_GEN_DIRECTORY/core/
+cp $PROJECT_ROOT/platform/tag.c $LF_SOURCE_GEN_DIRECTORY/core/
 
 # Copy platform into /include/core
 # TODO: Why are there two generated core dirs
@@ -27,6 +31,10 @@ cp $PROJECT_ROOT/platform/platform.h $LF_SOURCE_GEN_DIRECTORY/include/core/
 cp $PROJECT_ROOT/platform/start.S $LF_SOURCE_GEN_DIRECTORY/include/core/
 cp $PROJECT_ROOT/platform/tinyalloc/tinyalloc.c $LF_SOURCE_GEN_DIRECTORY/include/core/
 cp $PROJECT_ROOT/platform/tinyalloc/tinyalloc.h $LF_SOURCE_GEN_DIRECTORY/include/core/
+# FIXME: Try to remove the following by building support in the compiler.
+cp $PROJECT_ROOT/platform/reactor.c $LF_SOURCE_GEN_DIRECTORY/include/core/
+cp $PROJECT_ROOT/platform/reactor_common.c $LF_SOURCE_GEN_DIRECTORY/include/core/
+cp $PROJECT_ROOT/platform/tag.c $LF_SOURCE_GEN_DIRECTORY/include/core/
 
 printf '
 .DEFAULT_GOAL := all
