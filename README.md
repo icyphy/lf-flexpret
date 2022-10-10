@@ -26,14 +26,14 @@ cd ..
 
 2. Build and run a simple LF program
 ```bash
-cd src
-lfc Timer.lf
-cd ../src-gen/Timer/
-fp-emu +ispm=Timer.mem
+lfc src/Timer.lf
+cd src-gen/Timer/
+../../flexpret/emulator/fp-emu +ispm=Timer.mem
 ```
 
 You should see the following outputs
 ```
+$ ../../flexpret/emulator/fp-emu +ispm=Timer.mem
 1
 2
 3
@@ -46,3 +46,5 @@ You should see the following outputs
 10
 - Core.sim.v:3154: Verilog $finish
 ```
+
+It is recommended to add `flexpret/emulator/fp-emu` to `PATH` so that `fp-emu` can be directly called anywhere.
