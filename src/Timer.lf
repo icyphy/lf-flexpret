@@ -1,8 +1,7 @@
-// FIXME: Does not work on FlexPRET yet.
 target C {
     threading: false,
     build: "../scripts/build_flexpret_unix.sh",
-    // timeout: 500 msec
+    // timeout: 500 msec // FIXME: timeout does not work yet.
 };
 
 preamble {=

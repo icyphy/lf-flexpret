@@ -1,4 +1,3 @@
-// FIXME: Does not work yet.
 target C {
     threading: false,
     build: "../scripts/build_flexpret_unix.sh"
