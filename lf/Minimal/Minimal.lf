@@ -1,7 +1,0 @@
-target C;
-
-main reactor {
-    timer t;
-    reaction(t) {=
-    =}
-}

@@ -1,0 +1,15 @@
+// FIXME: Does not work yet.
+target C {
+    threading: false,
+    build: "../scripts/build_flexpret_unix.sh"
+};
+
+preamble {=
+    #include <flexpret_io.h>
+=}
+
+main reactor {
+    reaction(startup) {=
+        _fp_print(0x0005BABE);
+    =}
+}
