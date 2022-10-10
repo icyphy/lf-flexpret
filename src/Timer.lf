@@ -15,7 +15,7 @@ main reactor {
     state count:{=uint32_t=}
     reaction(t) {=
         self->count += 1;
-        _fp_print(0xBABE0000 + self->count);
+        _fp_print(self->count);
         if (self->count >= 10) lf_request_stop();
     =}
 }
