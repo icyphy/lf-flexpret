@@ -2,16 +2,20 @@
 target C {
     threading: false,
     build: "../scripts/build_flexpret_unix.sh",
-    timeout: 10 sec
+    // timeout: 500 msec
 };
 
 preamble {=
+    #include <stdint.h>
     #include <flexpret_io.h>
 =}
 
 main reactor {
     timer t(0, 100 ms);
+    state count:{=uint32_t=}
     reaction(t) {=
-        _fp_print(1);
+        self->count += 1;
+        _fp_print(0xBABE0000 + self->count);
+        if (self->count >= 10) lf_request_stop();
     =}
 }

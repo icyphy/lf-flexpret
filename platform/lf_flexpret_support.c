@@ -41,8 +41,7 @@ THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 int lf_clock_gettime(instant_t* t) {
     *t = (instant_t) rdtime();
-    _fp_print((uint32_t) *t);
-	return 0;
+    return 0;
 }
 
 /**
@@ -52,13 +51,13 @@ int lf_clock_gettime(instant_t* t) {
  *  set appropriately (see `man 2 clock_nanosleep`).
  */
 int lf_sleep(instant_t requested_time) {
-	instant_t t;
-	lf_clock_gettime(&t);
+    instant_t t;
+    lf_clock_gettime(&t);
     instant_t expire_time = t + requested_time;
-	while (t < expire_time) {
-		lf_clock_gettime(&t);
-	}
-	return 0;
+    while (t < expire_time) {
+        lf_clock_gettime(&t);
+    }
+    return 0;
 }
 
 /**
@@ -68,8 +67,8 @@ int lf_sleep(instant_t requested_time) {
  * @return int 0 if sleep completed, or -1 if it was interrupted.
  */
 int lf_sleep_until(instant_t wakeup_time) {
-	// FIXME: implement using delay until.
-	return 0;
+    // FIXME: implement using delay until.
+    return 0;
 }
 
 /**
@@ -81,21 +80,21 @@ void lf_initialize_clock() {}
  * Allocate a requested memory and return a pointer to it.
  */
 void *malloc(size_t size) {
-	return ta_alloc(size);
+    return ta_alloc(size);
 }
 
 /**
  * Allocate a requested memory and return a pointer to it.
  */
 void *calloc(size_t nitems, size_t size) {
-	return ta_calloc(nitems, size);
+    return ta_calloc(nitems, size);
 }
 
 /**
  * Deallocates the memory previously allocated by a call to calloc, malloc, or realloc.
  */
 void free(void *ptr) {
-	ta_free(ptr);
+    ta_free(ptr);
 }
 
 // Overwrite print functions with NoOp.
@@ -108,12 +107,12 @@ int vfprintf(FILE *stream, const char *format, va_list arg) {}
 
 // Functions for marking critical sections
 int lf_critical_section_enter() {
-	// TODO: disable interrupts.
+    // TODO: disable interrupts.
     return 0;
 }
 
 int lf_critical_section_exit() {
-	// TODO: enable interrupts.
+    // TODO: enable interrupts.
     return 0;
 }
 
@@ -129,5 +128,5 @@ int lf_notify_of_event() {
     // restart the timer in case the interrupt was unrelated
     // to the scheduling of a new event.
     // Issue: https://github.com/icyphy/lf-buckler/issues/15
-	return 0;
+    return 0;
 }

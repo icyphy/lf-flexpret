@@ -10,6 +10,6 @@ preamble {=
 
 main reactor {
     reaction(startup) {=
-        _fp_print(1);
+        _fp_print(0x0005BABE);
     =}
 }

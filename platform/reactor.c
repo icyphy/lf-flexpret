@@ -35,8 +35,6 @@ THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "reactor_common.c"
 #include "platform.h"
 #include <signal.h> // To trap ctrl-c and invoke termination().
-//#include <assert.h>
-#include <flexpret_io.h>
 
 /**
  * @brief Queue of triggered reactions at the current tag.
@@ -60,7 +58,7 @@ pqueue_t* reaction_q;
  * @param port A pointer to the port struct.
  */
 void _lf_set_present(lf_port_base_t* port) {
-	bool* is_present_field = &port->is_present;
+    bool* is_present_field = &port->is_present;
     if (_lf_is_present_fields_abbreviated_size < _lf_is_present_fields_size) {
         _lf_is_present_fields_abbreviated[_lf_is_present_fields_abbreviated_size]
             = is_present_field;
@@ -70,16 +68,16 @@ void _lf_set_present(lf_port_base_t* port) {
 
     // Support for sparse destination multiports.
     if(port->sparse_record
-    		&& port->destination_channel >= 0
-			&& port->sparse_record->size >= 0) {
-    	size_t next = port->sparse_record->size++;
-    	if (next >= port->sparse_record->capacity) {
-    		// Buffer is full. Have to revert to the classic iteration.
-    		port->sparse_record->size = -1;
-    	} else {
-    		port->sparse_record->present_channels[next]
-				  = port->destination_channel;
-    	}
+            && port->destination_channel >= 0
+            && port->sparse_record->size >= 0) {
+        size_t next = port->sparse_record->size++;
+        if (next >= port->sparse_record->capacity) {
+            // Buffer is full. Have to revert to the classic iteration.
+            port->sparse_record->size = -1;
+        } else {
+            port->sparse_record->present_channels[next]
+                  = port->destination_channel;
+        }
     }
 }
 
@@ -143,7 +141,7 @@ void _lf_trigger_reaction(reaction_t* reaction, int worker_number) {
     // Do not enqueue this reaction twice.
     if (reaction->status == inactive) {
         LF_PRINT_DEBUG("Enqueing downstream reaction %s, which has level %lld.",
-        		reaction->name, reaction->index & 0xffffLL);
+                reaction->name, reaction->index & 0xffffLL);
         reaction->status = queued;
         pqueue_insert(reaction_q, reaction);
     }
@@ -163,7 +161,7 @@ int _lf_do_step(void) {
         reaction->status = running;
         
         LF_PRINT_LOG("Invoking reaction %s at elapsed logical tag " PRINTF_TAG ".",
-        		reaction->name,
+                reaction->name,
                 current_tag.time - start_time, current_tag.microstep);
 
         bool violation = false;
@@ -312,10 +310,10 @@ int next(void) {
  * Stop execution at the conclusion of the next microstep.
  */
 void lf_request_stop() {
-	tag_t new_stop_tag;
-	new_stop_tag.time = current_tag.time;
-	new_stop_tag.microstep = current_tag.microstep + 1;
-	_lf_set_stop_tag(new_stop_tag);
+    tag_t new_stop_tag;
+    new_stop_tag.time = current_tag.time;
+    new_stop_tag.microstep = current_tag.microstep + 1;
+    _lf_set_stop_tag(new_stop_tag);
 }
 
 /**
@@ -339,15 +337,15 @@ bool _lf_is_blocked_by_executing_reaction(void) {
  * at compile time.
  */
 int lf_reactor_c_main(int argc, const char* argv[]) {
-    // FlexPRET: configure tinyalloc. Allocate 128 KB for the heap.
+    // FlexPRET: configure tinyalloc. 
     // FIXME: How to make sure that this is not overlapped with stack?
     //        Might need to move stack to the top.
     extern char end; // Set by linker.
-    ta_init(&end,                               // Base
-            (const void*)(0x20000000+0x1F400),  // Limit
-            128,                                // Num. chunks
-            16,                                 // Split thres.
-            4);                                 // Alignment
+    ta_init(&end,                           // Base
+            ((void*)0x20000000 + 0x3E400),  // Limit
+            100,                            // Num. chunks
+            16,                             // Split threshold
+            4);                             // Alignment
 
     // Invoke the function that optionally provides default command-line options.
     _lf_set_default_command_line_options();
@@ -384,7 +382,7 @@ int lf_reactor_c_main(int argc, const char* argv[]) {
         // the level in the 16 least significant bits.
         reaction_q = pqueue_init(INITIAL_REACT_QUEUE_SIZE, in_reverse_order, get_reaction_index,
                 get_reaction_position, set_reaction_position, reaction_matches, print_reaction);
-                
+
         current_tag = (tag_t){.time = start_time, .microstep = 0u};
         _lf_execution_started = true;
         _lf_trigger_startup_reactions();
@@ -399,21 +397,10 @@ int lf_reactor_c_main(int argc, const char* argv[]) {
         // Handle reactions triggered at time (T,m).
         if (_lf_do_step()) {
             while (next() != 0);
-        } else {
-            _fp_print(111);
         }
         // pqueue_free(reaction_q); FIXME: This might be causing weird memory errors
-
-        // Terminate the simulation with status code 0.
-        _fp_print(0);
-        _fp_finish();
-        while(1) {}
-        __builtin_unreachable();
+        return 0;
     } else {
-        // Terminate the simulation with status code 1.
-        _fp_print(1);
-        _fp_finish();
-        while(1) {}
-        __builtin_unreachable();
+        return -1;
     }
 }

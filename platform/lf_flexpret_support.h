@@ -44,6 +44,7 @@ THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <stdio.h>      // Defines FILE
 #include <string.h>     // Defines strlen
 #include "../utils/util.h"
+#include "../tinyalloc.h"
 
 /**
  * Like nRF52, for FlexPRET, each mutex will control an interrupt.
