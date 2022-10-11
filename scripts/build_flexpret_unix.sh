@@ -15,11 +15,10 @@ echo "LF filename is $LF_FILENAME.lf."
 cp $PROJECT_ROOT/flexpret/programs/lib/start.S $LF_SOURCE_GEN_DIRECTORY/core/
 cp $PROJECT_ROOT/flexpret/programs/lib/syscalls.c $LF_SOURCE_GEN_DIRECTORY/core/
 cp $PROJECT_ROOT/flexpret/programs/lib/startup.c $LF_SOURCE_GEN_DIRECTORY/core/
+cp -r $PROJECT_ROOT/flexpret/programs/lib/tinyalloc $LF_SOURCE_GEN_DIRECTORY/core/
 cp $PROJECT_ROOT/platform/lf_flexpret_support.c $LF_SOURCE_GEN_DIRECTORY/core/platform/
 cp $PROJECT_ROOT/platform/lf_flexpret_support.h $LF_SOURCE_GEN_DIRECTORY/core/platform/
 cp $PROJECT_ROOT/platform/platform.h $LF_SOURCE_GEN_DIRECTORY/core/
-cp $PROJECT_ROOT/platform/tinyalloc/tinyalloc.c $LF_SOURCE_GEN_DIRECTORY/core/
-cp $PROJECT_ROOT/platform/tinyalloc/tinyalloc.h $LF_SOURCE_GEN_DIRECTORY/core/
 # FIXME: Try to remove the following by building support in the compiler.
 cp $PROJECT_ROOT/platform/reactor.c $LF_SOURCE_GEN_DIRECTORY/core/
 cp $PROJECT_ROOT/platform/reactor_common.c $LF_SOURCE_GEN_DIRECTORY/core/
@@ -30,11 +29,10 @@ cp $PROJECT_ROOT/platform/tag.c $LF_SOURCE_GEN_DIRECTORY/core/
 cp $PROJECT_ROOT/flexpret/programs/lib/start.S $LF_SOURCE_GEN_DIRECTORY/include/core/
 cp $PROJECT_ROOT/flexpret/programs/lib/syscalls.c $LF_SOURCE_GEN_DIRECTORY/include/core/
 cp $PROJECT_ROOT/flexpret/programs/lib/startup.c $LF_SOURCE_GEN_DIRECTORY/include/core/
+cp -r $PROJECT_ROOT/flexpret/programs/lib/tinyalloc $LF_SOURCE_GEN_DIRECTORY/include/core/
 cp $PROJECT_ROOT/platform/lf_flexpret_support.c $LF_SOURCE_GEN_DIRECTORY/include/core/platform/
 cp $PROJECT_ROOT/platform/lf_flexpret_support.h $LF_SOURCE_GEN_DIRECTORY/include/core/platform/
 cp $PROJECT_ROOT/platform/platform.h $LF_SOURCE_GEN_DIRECTORY/include/core/
-cp $PROJECT_ROOT/platform/tinyalloc/tinyalloc.c $LF_SOURCE_GEN_DIRECTORY/include/core/
-cp $PROJECT_ROOT/platform/tinyalloc/tinyalloc.h $LF_SOURCE_GEN_DIRECTORY/include/core/
 # FIXME: Try to remove the following by building support in the compiler.
 cp $PROJECT_ROOT/platform/reactor.c $LF_SOURCE_GEN_DIRECTORY/include/core/
 cp $PROJECT_ROOT/platform/reactor_common.c $LF_SOURCE_GEN_DIRECTORY/include/core/
@@ -64,7 +62,7 @@ RISCV_OBJCOPY ?= $(RISCV_PREFIX)objcopy
 RISCV_OBJCOPY_OPTS ?= -O binary
 
 INCS  += -I$(LF_SOURCE_GEN_DIRECTORY)/../../flexpret/programs/lib/include
-OBJS  :==
+OBJS  :=
 
 #--------------------------------------------------------------------
 # Build application
@@ -72,7 +70,7 @@ OBJS  :==
 
 $(LF_FILENAME).riscv:
 	# Compile the program into riscv binary.
-	$(RISCV_GCC) $(INCS) $(RISCV_GCC_OPTS) $(RISCV_LINK) $(RISCV_LINK_OPTS) -o $@ $(LF_SOURCE_GEN_DIRECTORY)/core/start.S $(LF_SOURCE_GEN_DIRECTORY)/core/syscalls.c $(LF_SOURCE_GEN_DIRECTORY)/core/startup.c $(LF_SOURCE_GEN_DIRECTORY)/core/tinyalloc.c $(LF_SOURCE_GEN_DIRECTORY)/core/platform/lf_flexpret_support.c $(wildcard $(LF_SOURCE_GEN_DIRECTORY)/*.c)
+	$(RISCV_GCC) $(INCS) $(RISCV_GCC_OPTS) $(RISCV_LINK) $(RISCV_LINK_OPTS) -o $@ $(LF_SOURCE_GEN_DIRECTORY)/core/start.S $(LF_SOURCE_GEN_DIRECTORY)/core/syscalls.c $(LF_SOURCE_GEN_DIRECTORY)/core/tinyalloc/tinyalloc.c $(LF_SOURCE_GEN_DIRECTORY)/core/startup.c $(LF_SOURCE_GEN_DIRECTORY)/core/platform/lf_flexpret_support.c $(wildcard $(LF_SOURCE_GEN_DIRECTORY)/*.c)
 
 $(LF_FILENAME).dump: $(LF_FILENAME).riscv
 	$(RISCV_OBJDUMP) $(RISCV_OBJDUMP_OPTS) $< > $@

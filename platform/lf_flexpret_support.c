@@ -28,7 +28,6 @@ THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <flexpret_io.h>
 #include "lf_flexpret_support.h"
 #include "../platform.h"
-#include "../tinyalloc.h"
 
 /**
  * Fetch the value of an internal (and platform-specific) physical clock and 
@@ -75,27 +74,6 @@ int lf_sleep_until(instant_t wakeup_time) {
  * Initialize the LF clock.
  */
 void lf_initialize_clock() {}
-
-/**
- * Allocate a requested memory and return a pointer to it.
- */
-void *malloc(size_t size) {
-    return ta_alloc(size);
-}
-
-/**
- * Allocate a requested memory and return a pointer to it.
- */
-void *calloc(size_t nitems, size_t size) {
-    return ta_calloc(nitems, size);
-}
-
-/**
- * Deallocates the memory previously allocated by a call to calloc, malloc, or realloc.
- */
-void free(void *ptr) {
-    ta_free(ptr);
-}
 
 // Overwrite print functions with NoOp.
 int printf(const char *format, ...) {}

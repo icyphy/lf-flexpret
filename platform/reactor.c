@@ -337,15 +337,6 @@ bool _lf_is_blocked_by_executing_reaction(void) {
  * at compile time.
  */
 int lf_reactor_c_main(int argc, const char* argv[]) {
-    // FlexPRET: configure tinyalloc. 
-    // FIXME: How to make sure that this is not overlapped with stack?
-    //        Might need to move stack to the top.
-    extern char end; // Set by linker.
-    ta_init(&end,                           // Base
-            ((void*)0x20000000 + 0x3E400),  // Limit
-            100,                            // Num. chunks
-            16,                             // Split threshold
-            4);                             // Alignment
 
     // Invoke the function that optionally provides default command-line options.
     _lf_set_default_command_line_options();
