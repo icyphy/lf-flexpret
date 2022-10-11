@@ -1,6 +1,3 @@
 [submodule "flexpret"]
 	path = flexpret
 	url = https://github.com/lsk567/flexpret.git 
-[submodule "platform/tinyalloc"]
-	path = platform/tinyalloc
-	url = https://github.com/thi-ng/tinyalloc.git
