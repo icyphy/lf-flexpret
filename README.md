@@ -3,7 +3,7 @@
 
 ## Setup
 
-(Optional) To skip the setup, you can use a pre-built [Ubuntu VM image](https://drive.google.com/file/d/1-up7AZVIdNj_yFmq8U6EUC5M5qc8zlSB/view?usp=sharing) with most of the dependencies installed. Follow [these instructions](https://leaf-enquiry-8f7.notion.site/Adjusting-the-VM-6ef662f5649d43128417c4f8acab0b6e) to adjust the VM image.
+(Optional) To skip the setup, you can use a pre-built [Ubuntu VM image](https://drive.google.com/file/d/1-up7AZVIdNj_yFmq8U6EUC5M5qc8zlSB/view?usp=sharing) with most of the dependencies installed. Follow [these instructions](https://sklin.notion.site/FlexPRET-VM-setup-notes-6ef662f5649d43128417c4f8acab0b6e) to adjust the VM image.
 
 1. Install the RISC-V GNU toolchain by following these [instructions](https://github.com/pretis/flexpret#risc-v-compiler).
 
