@@ -49,7 +49,7 @@ int lf_clock_gettime(instant_t* t) {
  * @return 0 for success, or -1 for failure. In case of failure, errno will be
  *  set appropriately (see `man 2 clock_nanosleep`).
  */
-int lf_sleep(instant_t requested_time) {
+int lf_nanosleep(instant_t requested_time) {
     instant_t t;
     lf_clock_gettime(&t);
     instant_t expire_time = t + requested_time;

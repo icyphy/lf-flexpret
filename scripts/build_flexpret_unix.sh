@@ -11,32 +11,17 @@ ARR=(${LF_SOURCE_GEN_DIRECTORY//\// })
 LF_FILENAME=${ARR[-1]} # Without the .lf extension
 echo "LF filename is $LF_FILENAME.lf."
 
-# Copy platform into /core
+# Copy c files into /core.
 cp $PROJECT_ROOT/flexpret/programs/lib/start.S $LF_SOURCE_GEN_DIRECTORY/core/
 cp $PROJECT_ROOT/flexpret/programs/lib/syscalls.c $LF_SOURCE_GEN_DIRECTORY/core/
 cp $PROJECT_ROOT/flexpret/programs/lib/startup.c $LF_SOURCE_GEN_DIRECTORY/core/
 cp -r $PROJECT_ROOT/flexpret/programs/lib/tinyalloc $LF_SOURCE_GEN_DIRECTORY/core/
 cp $PROJECT_ROOT/platform/lf_flexpret_support.c $LF_SOURCE_GEN_DIRECTORY/core/platform/
-cp $PROJECT_ROOT/platform/lf_flexpret_support.h $LF_SOURCE_GEN_DIRECTORY/core/platform/
-cp $PROJECT_ROOT/platform/platform.h $LF_SOURCE_GEN_DIRECTORY/core/
-# FIXME: Try to remove the following by building support in the compiler.
-cp $PROJECT_ROOT/platform/reactor.c $LF_SOURCE_GEN_DIRECTORY/core/
-cp $PROJECT_ROOT/platform/reactor_common.c $LF_SOURCE_GEN_DIRECTORY/core/
-cp $PROJECT_ROOT/platform/tag.c $LF_SOURCE_GEN_DIRECTORY/core/
 
-# Copy platform into /include/core
-# TODO: Why are there two generated core dirs
-cp $PROJECT_ROOT/flexpret/programs/lib/start.S $LF_SOURCE_GEN_DIRECTORY/include/core/
-cp $PROJECT_ROOT/flexpret/programs/lib/syscalls.c $LF_SOURCE_GEN_DIRECTORY/include/core/
-cp $PROJECT_ROOT/flexpret/programs/lib/startup.c $LF_SOURCE_GEN_DIRECTORY/include/core/
+# Copy header files into /include.
 cp -r $PROJECT_ROOT/flexpret/programs/lib/tinyalloc $LF_SOURCE_GEN_DIRECTORY/include/core/
-cp $PROJECT_ROOT/platform/lf_flexpret_support.c $LF_SOURCE_GEN_DIRECTORY/include/core/platform/
 cp $PROJECT_ROOT/platform/lf_flexpret_support.h $LF_SOURCE_GEN_DIRECTORY/include/core/platform/
 cp $PROJECT_ROOT/platform/platform.h $LF_SOURCE_GEN_DIRECTORY/include/core/
-# FIXME: Try to remove the following by building support in the compiler.
-cp $PROJECT_ROOT/platform/reactor.c $LF_SOURCE_GEN_DIRECTORY/include/core/
-cp $PROJECT_ROOT/platform/reactor_common.c $LF_SOURCE_GEN_DIRECTORY/include/core/
-cp $PROJECT_ROOT/platform/tag.c $LF_SOURCE_GEN_DIRECTORY/include/core/
 
 printf '
 .DEFAULT_GOAL := all
@@ -61,8 +46,21 @@ RISCV_OBJDUMP_OPTS ?= -S -d
 RISCV_OBJCOPY ?= $(RISCV_PREFIX)objcopy
 RISCV_OBJCOPY_OPTS ?= -O binary
 
-INCS  += -I$(LF_SOURCE_GEN_DIRECTORY)/../../flexpret/programs/lib/include
-OBJS  :=
+INCS  := -I$(LF_SOURCE_GEN_DIRECTORY)/../../flexpret/programs/lib/include \
+    -I$(LF_SOURCE_GEN_DIRECTORY)/include/ \
+    -I$(LF_SOURCE_GEN_DIRECTORY)/include/api \
+    -I$(LF_SOURCE_GEN_DIRECTORY)/include/core \
+    -I$(LF_SOURCE_GEN_DIRECTORY)/include/core/modal_models \
+    -I$(LF_SOURCE_GEN_DIRECTORY)/include/core/utils \
+    -I$(LF_SOURCE_GEN_DIRECTORY)/include/core/platform \
+
+# Usually defined in CMakeLists.txt
+# "-DARDUINO" is a hacky way to disable signal() in reactor_common.c.
+# A proper way would set an EMBEDDED macro in reactor_common.c
+# to disable signal() for all embedded boards.
+DEFS  := -DINITIAL_EVENT_QUEUE_SIZE=10 \
+	-DINITIAL_REACT_QUEUE_SIZE=10 \
+	-DARDUINO
 
 #--------------------------------------------------------------------
 # Build application
@@ -70,7 +68,21 @@ OBJS  :=
 
 $(LF_FILENAME).riscv:
 	# Compile the program into riscv binary.
-	$(RISCV_GCC) $(INCS) $(RISCV_GCC_OPTS) $(RISCV_LINK) $(RISCV_LINK_OPTS) -o $@ $(LF_SOURCE_GEN_DIRECTORY)/core/start.S $(LF_SOURCE_GEN_DIRECTORY)/core/syscalls.c $(LF_SOURCE_GEN_DIRECTORY)/core/tinyalloc/tinyalloc.c $(LF_SOURCE_GEN_DIRECTORY)/core/startup.c $(LF_SOURCE_GEN_DIRECTORY)/core/platform/lf_flexpret_support.c $(wildcard $(LF_SOURCE_GEN_DIRECTORY)/*.c)
+	$(RISCV_GCC) $(INCS) $(DEFS) $(RISCV_GCC_OPTS) $(RISCV_LINK) \
+		$(RISCV_LINK_OPTS) -o $@ \
+		$(LF_SOURCE_GEN_DIRECTORY)/core/start.S \
+		$(LF_SOURCE_GEN_DIRECTORY)/core/syscalls.c \
+		$(LF_SOURCE_GEN_DIRECTORY)/core/tinyalloc/tinyalloc.c \
+		$(LF_SOURCE_GEN_DIRECTORY)/core/startup.c \
+		$(LF_SOURCE_GEN_DIRECTORY)/core/platform/lf_flexpret_support.c \
+		$(LF_SOURCE_GEN_DIRECTORY)/core/port.c \
+		$(LF_SOURCE_GEN_DIRECTORY)/core/tag.c \
+		$(LF_SOURCE_GEN_DIRECTORY)/core/utils/pqueue.c \
+		$(LF_SOURCE_GEN_DIRECTORY)/core/utils/util.c \
+		$(LF_SOURCE_GEN_DIRECTORY)/core/utils/vector.c \
+		$(LF_SOURCE_GEN_DIRECTORY)/core/reactor_common.c \
+		$(LF_SOURCE_GEN_DIRECTORY)/core/reactor.c \
+		$(wildcard $(LF_SOURCE_GEN_DIRECTORY)/*.c)
 
 $(LF_FILENAME).dump: $(LF_FILENAME).riscv
 	$(RISCV_OBJDUMP) $(RISCV_OBJDUMP_OPTS) $< > $@

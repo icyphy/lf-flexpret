@@ -26,13 +26,17 @@ THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 /**
  * Platform API support for the C target of Lingua Franca.
- * This file is a variant for the C target for FlexPRET,
- * based on the generic platform.h in LF.
+ * This file detects the platform on which the C compiler is being run
+ * (e.g. Windows, Linux, Mac) and conditionally includes platform-specific
+ * files that define core datatypes and function signatures for Lingua Franca.
+ * For example, the type instant_t represents a time value (long long on
+ * most of the platforms). The conditionally included files define a type
+ * _instant_t, and this file defines the type instant_t to be whatever
+ * the included defines _instant_t to be. All platform-independent code
+ * in Lingua Franca, therefore, should use the type instant_t for time
+ * values.
  *
- * This file is based on platform.h in icyphy/lf-buckler.
- *
- * @author{Abhi Gundrala <gundrala@berkeley.edu>}
- * @author{Shaokai Lin <shaokai@berkeley.edu>}
+ * @author{Soroush Bateni <soroush@utdallas.edu>}
  */
 
 #ifndef PLATFORM_H
@@ -40,7 +44,13 @@ THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "platform/lf_flexpret_support.h"
 
+#if defined NUMBER_OF_WORKERS || defined LINGUA_FRANCA_TRACE
+#define LF_TIMEOUT _LF_TIMEOUT
+
 typedef _lf_mutex_t lf_mutex_t;          // Type to hold handle to a mutex
+typedef _lf_cond_t lf_cond_t;            // Type to hold handle to a condition variable
+typedef _lf_thread_t lf_thread_t;        // Type to hold handle to a thread
+#endif
 
 /**
  * Time instant. Both physical and logical times are represented
@@ -57,31 +67,6 @@ typedef _interval_t interval_t;
  * Microstep instant.
  */
 typedef _microstep_t microstep_t;
-
-/**
- * Enter a critical section where logical time and the event queue are guaranteed
- * to not change unless they are changed within the critical section.
- * In platforms with threading support, this normally will be implemented
- * by acquiring a mutex lock. In platforms without threading support,
- * this can be implemented by disabling interrupts.
- * Users of this function must ensure that lf_init_critical_sections() is
- * called first and that lf_critical_section_exit() is called later.
- * @return 0 on success, platform-specific error number otherwise.
- */
-extern int lf_critical_section_enter();
-
-/**
- * Exit the critical section entered with lf_lock_time().
- * @return 0 on success, platform-specific error number otherwise.
- */
-extern int lf_critical_section_exit();
-
-/**
- * Notify any listeners that an event has been created.
- * The caller should call lf_critical_section_enter() before calling this function.
- * @return 0 on success, platform-specific error number otherwise.
- */
-extern int lf_notify_of_event();
 
 #ifdef NUMBER_OF_WORKERS
 
@@ -103,45 +88,67 @@ extern int lf_thread_create(lf_thread_t* thread, void *(*lf_thread) (void *), vo
  * Make calling thread wait for termination of the thread.  The
  * exit status of the thread is stored in thread_return, if thread_return
  * is not NULL.
- * 
+ *
  * @return 0 on success, platform-specific error number otherwise.
  */
 extern int lf_thread_join(lf_thread_t thread, void** thread_return);
 
-/** 
+/**
+ * Initialize a mutex.
+ *
+ * @return 0 on success, platform-specific error number otherwise.
+ */
+extern int lf_mutex_init(lf_mutex_t* mutex);
+
+/**
+ * Lock a mutex.
+ *
+ * @return 0 on success, platform-specific error number otherwise.
+ */
+extern int lf_mutex_lock(lf_mutex_t* mutex);
+
+/**
+ * Unlock a mutex.
+ *
+ * @return 0 on success, platform-specific error number otherwise.
+ */
+extern int lf_mutex_unlock(lf_mutex_t* mutex);
+
+
+/**
  * Initialize a conditional variable.
- * 
+ *
  * @return 0 on success, platform-specific error number otherwise.
  */
 extern int lf_cond_init(lf_cond_t* cond);
 
-/** 
+/**
  * Wake up all threads waiting for condition variable cond.
- * 
+ *
  * @return 0 on success, platform-specific error number otherwise.
  */
 extern int lf_cond_broadcast(lf_cond_t* cond);
 
-/** 
+/**
  * Wake up one thread waiting for condition variable cond.
- * 
+ *
  * @return 0 on success, platform-specific error number otherwise.
  */
 extern int lf_cond_signal(lf_cond_t* cond);
 
-/** 
+/**
  * Wait for condition variable "cond" to be signaled or broadcast.
  * "mutex" is assumed to be locked before.
- * 
+ *
  * @return 0 on success, platform-specific error number otherwise.
  */
 extern int lf_cond_wait(lf_cond_t* cond, lf_mutex_t* mutex);
 
-/** 
+/**
  * Block current thread on the condition variable until condition variable
  * pointed by "cond" is signaled or time pointed by "absolute_time_ns" in
  * nanoseconds is reached.
- * 
+ *
  * @return 0 on success, LF_TIMEOUT on timeout, and platform-specific error
  *  number otherwise.
  */
@@ -183,13 +190,29 @@ extern int lf_cond_timedwait(lf_cond_t* cond, lf_mutex_t* mutex, instant_t absol
  * @param ptr A pointer to a variable.
  * @param oldval The value to compare against.
  * @param newval The value to assign to *ptr if comparison is successful.
- * @return The true if comparison was successful. False otherwise.
+ * @return True if comparison was successful. False otherwise.
  */
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
-// Assume that an integer is 32 bits.
+// Assume that a boolean is represented with a 32-bit integer.
 #define lf_bool_compare_and_swap(ptr, oldval, newval) (InterlockedCompareExchange(ptr, newval, oldval) == oldval)
 #elif defined(__GNUC__) || defined(__clang__)
 #define lf_bool_compare_and_swap(ptr, oldval, newval) __sync_bool_compare_and_swap(ptr, oldval, newval)
+#else
+#error "Compiler not supported"
+#endif
+
+/*
+ * Atomically compare the 32-bit value that ptr points to against oldval. If the
+ * current value is oldval, then write newval into *ptr.
+ * @param ptr A pointer to a variable.
+ * @param oldval The value to compare against.
+ * @param newval The value to assign to *ptr if comparison is successful.
+ * @return The initial value of *ptr.
+ */
+#if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
+#define lf_val_compare_and_swap(ptr, oldval, newval) InterlockedCompareExchange(ptr, newval, oldval)
+#elif defined(__GNUC__) || defined(__clang__)
+#define lf_val_compare_and_swap(ptr, oldval, newval) __sync_val_compare_and_swap(ptr, oldval, newval)
 #else
 #error "Compiler not supported"
 #endif
@@ -202,30 +225,23 @@ extern int lf_cond_timedwait(lf_cond_t* cond, lf_mutex_t* mutex, instant_t absol
 extern void lf_initialize_clock(void);
 
 /**
- * Fetch the value of an internal (and platform-specific) physical clock and 
+ * Fetch the value of an internal (and platform-specific) physical clock and
  * store it in `t`.
- * 
+ *
  * Ideally, the underlying platform clock should be monotonic. However, the
  * core lib tries to enforce monotonicity at higher level APIs (see tag.h).
- * 
+ *
  * @return 0 for success, or -1 for failure
  */
 extern int lf_clock_gettime(instant_t* t);
 
 /**
- * Pause execution for a given duration.
- * 
+ * Pause execution for a number of nanoseconds.
+ *
  * @return 0 for success, or -1 for failure.
  */
-extern int lf_nanosleep(interval_t sleep_duration);
+extern int lf_nanosleep(instant_t requested_time);
 
-/**
- * @brief Sleep until the given wakeup time.
- * 
- * @param wakeup_time The time instant at which to wake up.
- * @return int 0 if sleep completed, or -1 if it was interrupted.
- */
-extern int lf_sleep_until(instant_t wakeup_time);
 
 /**
  * Macros for marking function as deprecated
