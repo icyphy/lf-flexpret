@@ -1,4 +1,4 @@
-# Running LF on FlexPRET
+# Lingua Franca on FlexPRET
 [Lingua Franca (LF)](https://github.com/lf-lang/lingua-franca) is a polyglot coordination language featuring time as a first-class citizen. [FlexPRET](https://github.com/pretis/flexpret) is a 5-stage RISC-V processor with timing-predictable and repeatable execution. This repository explores how the high-level timing semantics and constraints at the LF level are fulfilled by FlexPRET such that hard real-time deadlines are guaranteed to be satisfied.
 
 ## Setup
