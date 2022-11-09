@@ -13,7 +13,7 @@ git clone https://github.com/icyphy/lf-flexpret.git
 git submodule update --init --recursive
 ```
 
-3. Install [Lingua Franca](https://github.com/lf-lang/lingua-franca/wiki/Downloading-and-Building).
+3. Install Lingua Franca (Java 17 or up required).
 ```bash
 cd lingua-franca
 ./bin/build-lf-cli
