@@ -7,13 +7,19 @@
 
 1. Install the RISC-V GNU toolchain by following these [instructions](https://github.com/pretis/flexpret#risc-v-compiler).
 
-2. Install [Lingua Franca](https://github.com/lf-lang/lingua-franca/wiki/Downloading-and-Building) and add `lfc` to `PATH`.
-
-3. Clone this repo with the `flexpret` submodule.
+2. Clone this repo with submodules.
 ```bash
 git clone https://github.com/icyphy/lf-flexpret.git
 git submodule update --init --recursive
 ```
+
+3. Install [Lingua Franca](https://github.com/lf-lang/lingua-franca/wiki/Downloading-and-Building).
+```bash
+cd lingua-franca
+./bin/build-lf-cli
+```
+
+4. Add `./bin/lfc` to `PATH`.
 
 ## Quick start
 
