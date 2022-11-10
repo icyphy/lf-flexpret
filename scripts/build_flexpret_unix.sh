@@ -3,13 +3,13 @@
 # Project root is one up from the bin directory.
 PROJECT_ROOT=$LF_BIN_DIRECTORY/..
 
-echo "starting NRF generation script into $LF_SOURCE_GEN_DIRECTORY"
-echo "pwd is $(pwd)"
+echo "Generating a Makefile for FlexPRET in $LF_SOURCE_GEN_DIRECTORY"
+echo "Current directory is $(pwd)"
 
 # Parse filename from the src-gen directory name
-IFS='/' read -ra ARR <<< "$LF_SOURCE_GEN_DIRECTORY"
-LF_FILENAME=${ARR[-1]} # LF filename without the .lf extension
-echo "LF filename is $LF_FILENAME.lf."
+# https://stackoverflow.com/questions/3162385/how-to-split-a-string-in-shell-and-get-the-last-field
+LF_FILENAME=${LF_SOURCE_GEN_DIRECTORY##*/} # Get the LF filename without the .lf extension.
+echo "The LF filename is $LF_FILENAME.lf."
 
 # Copy c files into /core.
 cp "$PROJECT_ROOT/flexpret/programs/lib/start.S" "$LF_SOURCE_GEN_DIRECTORY/core/"
