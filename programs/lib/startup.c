@@ -15,7 +15,8 @@ extern uint32_t __bss_end__;
 extern uint32_t end;
 
 //prototype of main
-int main(void);
+int main();
+int mt_main(uint32_t thread_id);
 
 /**
  * Allocate a requested memory and return a pointer to it.
@@ -42,7 +43,7 @@ void free(void *ptr) {
  * Initialize initialized global variables, set uninitialized global variables
  * to zero, configure tinyalloc, and jump to main.
  */
-void Reset_Handler(void) {
+void Reset_Handler() {
     // Copy .data section into the RAM
     uint32_t size   = &__data_end__ - &__data_start__;
     uint32_t *pDst  = (uint32_t*)&__data_start__;       // RAM
@@ -71,6 +72,8 @@ void Reset_Handler(void) {
     // Call main().
     main();
 
-    // Exit by calling the _exit() syscall.
-    _exit(0);
+}
+
+void mt_startup(uint32_t thread_id) {
+    mt_main(thread_id);
 }
