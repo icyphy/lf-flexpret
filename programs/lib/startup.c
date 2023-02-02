@@ -15,9 +15,12 @@ extern uint32_t __bss_start__;
 extern uint32_t __bss_end__;
 extern uint32_t end;
 
-//prototype of main
+// prototype of main, which runs on thread 0
 int main();
-int mt_main(uint32_t thread_id);
+// mt_main runs on all threads after main() completes
+__attribute__((weak)) int mt_main(uint32_t thread_id) { 
+    return 0;
+}
 
 /**
  * Allocate a requested memory and return a pointer to it.
