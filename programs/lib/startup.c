@@ -1,6 +1,7 @@
 #include <unistd.h>      // Declares _exit() with definition in syscalls.c.
 #include <stdint.h>
 #include <flexpret_io.h>
+#include <flexpret_sync.h>
 #include "tinyalloc/tinyalloc.h"
 
 #define DSPM_LIMIT          ((void*)0x2003E800) // 0x3E800 = 256K
@@ -74,6 +75,33 @@ void Reset_Handler() {
 
 }
 
-void mt_startup(uint32_t thread_id) {
+
+volatile uint32_t finished_setup = 0;
+
+void mt_thread_start(uint32_t thread_id) {
+    uint32_t f = 0;
+    
+    // thread 0 should call Reset_Handler, which
+    // does setup and calls main()
+    if (thread_id == 0) {
+        Reset_Handler(thread_id);
+        wait_for_access(thread_id);
+        finished_setup = 1;
+        f = 1;
+    }
+
+    // other threads wait for thread 0 to finish
+    while (!f) {
+        wait_for_access(thread_id);
+        f = finished_setup;
+    }
+    
+    // Call mt_main().
     mt_main(thread_id);
+
+    if (thread_id == 0) {
+        _exit(0);
+    } else {
+        while (1);
+    }
 }

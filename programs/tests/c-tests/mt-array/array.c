@@ -1,11 +1,11 @@
 #include <stdint.h>
 #include <flexpret_io.h>
-
+#include <flexpret_sync.h>
 
 
 #define LEN 20
-int lock;
-int sema;
+uint32_t lock;
+uint32_t sema;
 int array[LEN];
 
 
