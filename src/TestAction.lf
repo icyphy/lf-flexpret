@@ -1,0 +1,27 @@
+
+target C {
+    threading: false,
+    build: "../scripts/build_flexpret_unix.sh",
+    timeout: 100 ms // FIXME: timeout does not work for some reason.
+};
+
+preamble {=
+    #include <stdint.h>
+    #include <flexpret.h>
+=}
+
+main reactor {
+    logical action a;
+    state count:int
+    reaction(startup) -> a {=
+        lf_schedule(a, MSEC(10));
+    =}
+
+    reaction(a) {=
+        self->count += 1;
+        _fp_print(self->count);
+        _fp_print(lf_time_logical());
+        lf_schedule(a, MSEC(10));
+        // if (self->count >= 10) lf_request_stop();
+    =}
+}

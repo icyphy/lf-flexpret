@@ -45,7 +45,9 @@ GENERAL_SOURCES := \
 		$(LF_SOURCE_GEN_DIRECTORY)/core/tag.c \
 		$(LF_SOURCE_GEN_DIRECTORY)/core/mixed_radix.c \
 		$(LF_SOURCE_GEN_DIRECTORY)/core/reactor_common.c \
-		$(LF_SOURCE_GEN_DIRECTORY)/core/lf_token.c
+		$(LF_SOURCE_GEN_DIRECTORY)/core/trace.c \
+		$(LF_SOURCE_GEN_DIRECTORY)/core/lf_token.c \
+		$(LF_SOURCE_GEN_DIRECTORY)/lib/schedule.c
 
 UTIL_SOURCES := \
 		$(LF_SOURCE_GEN_DIRECTORY)/core/utils/pqueue.c \
