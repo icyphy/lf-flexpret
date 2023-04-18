@@ -25,37 +25,24 @@ THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <flexpret_io.h>
 #include "lf_flexpret_support.h"
 #include "../platform.h"
+#include "flexpret.h"
 
 /**
- * Fetch the value of an internal (and platform-specific) physical clock and 
- * store it in `t`.
- * 
- * Ideally, the underlying platform clock should be monotonic. However, the
- * core lib tries to enforce monotonicity at higher level APIs (see tag.h).
- * 
  * @return 0 for success, or -1 for failure
  */
-int lf_clock_gettime(instant_t* t) {
-    *t = (instant_t) rdtime();
-    return 0;
-}
 
-/**
- * Pause execution for a number of nanoseconds.
- *
- * @return 0 for success, or -1 for failure. In case of failure, errno will be
- *  set appropriately (see `man 2 clock_nanosleep`).
- */
-int lf_nanosleep(instant_t requested_time) {
-    instant_t t;
-    lf_clock_gettime(&t);
-    instant_t expire_time = t + requested_time;
-    while (t < expire_time) {
-        lf_clock_gettime(&t);
+static volatile uint32_t last_time = 0;
+static volatile uint64_t epoch = 0;
+#define EPOCH_DURATION_NS (1ULL << 32)
+int lf_clock_gettime(instant_t* t) {
+    uint32_t now = rdtime();
+    if (now < last_time) {
+        epoch += EPOCH_DURATION_NS;
     }
+    *t = now + epoch;
+    last_time = now;
     return 0;
 }
 
@@ -65,11 +52,18 @@ int lf_nanosleep(instant_t requested_time) {
  * @param wakeup_time The time instant at which to wake up.
  * @return int 0 if sleep completed, or -1 if it was interrupted.
  */
-int lf_sleep_until(instant_t wakeup_time) {
-    // FIXME: implement using delay until.
+int lf_sleep_until_locked(instant_t wakeup_time) {
+
+    // FIXME: Handle sleep durations exceeding 32bit nanoseconds range
+    // FIXME: Handle async events
+    delay_until(wakeup_time);
     return 0;
 }
 
+int lf_sleep(interval_t sleep_duration) {
+    // FIXME: Handle sleep durations exceeding 32bit
+    delay_for(sleep_duration);
+}
 /**
  * Initialize the LF clock.
  */
@@ -94,17 +88,22 @@ int lf_critical_section_exit() {
     return 0;
 }
 
-/**
- * @brief Do nothing. On the NRF, sleep interruptions are recorded in
- * the function _lf_timer_event_handler. Whenever sleep gets interrupted,
- * the next function is re-entered to make sure the event queue gets 
- * checked again.
- * @return 0 
- */
 int lf_notify_of_event() {
-    // FIXME: record notifications so that we can immediately
-    // restart the timer in case the interrupt was unrelated
-    // to the scheduling of a new event.
-    // Issue: https://github.com/icyphy/lf-buckler/issues/15
+    return 0;
+}
+
+/**
+ * Pause execution for a number of nanoseconds.
+ *
+ * @return 0 for success, or -1 for failure. In case of failure, errno will be
+ *  set appropriately (see `man 2 clock_nanosleep`).
+ */
+int lf_nanosleep(interval_t requested_time) {
+    instant_t t;
+    lf_clock_gettime(&t);
+    instant_t expire_time = t + requested_time;
+    while (t < expire_time) {
+        lf_clock_gettime(&t);
+    }
     return 0;
 }

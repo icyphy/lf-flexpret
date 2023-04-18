@@ -29,12 +29,6 @@ THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * This file detects the platform on which the C compiler is being run
  * (e.g. Windows, Linux, Mac) and conditionally includes platform-specific
  * files that define core datatypes and function signatures for Lingua Franca.
- * For example, the type instant_t represents a time value (long long on
- * most of the platforms). The conditionally included files define a type
- * _instant_t, and this file defines the type instant_t to be whatever
- * the included defines _instant_t to be. All platform-independent code
- * in Lingua Franca, therefore, should use the type instant_t for time
- * values.
  *
  * @author{Soroush Bateni <soroush@utdallas.edu>}
  */
@@ -42,33 +36,79 @@ THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef PLATFORM_H
 #define PLATFORM_H
 
-#include "platform/lf_flexpret_support.h"
+#include "lf_types.h"
 
-#if defined NUMBER_OF_WORKERS || defined LINGUA_FRANCA_TRACE
-#define LF_TIMEOUT _LF_TIMEOUT
-
-typedef _lf_mutex_t lf_mutex_t;          // Type to hold handle to a mutex
-typedef _lf_cond_t lf_cond_t;            // Type to hold handle to a condition variable
-typedef _lf_thread_t lf_thread_t;        // Type to hold handle to a thread
+#if defined(LF_THREADED) && defined(LF_UNTHREADED)
+#error LF_UNTHREADED and LF_THREADED runtime requested
 #endif
 
-/**
- * Time instant. Both physical and logical times are represented
- * using this typedef.
- */
-typedef _instant_t instant_t;
+#if !defined(LF_THREADED) && !defined(LF_UNTHREADED)
+#error Must define either LF_UNTHREADED or LF_THREADED runtime
+#endif
+
+
+#if defined(PLATFORM_ARDUINO)
+    #include "platform/lf_arduino_support.h"
+#elif defined(PLATFORM_ZEPHYR)
+    #include "platform/lf_zephyr_support.h"
+#elif defined(PLATFORM_NRF52)
+    #include "platform/lf_nrf52_support.h"
+#elif defined(PLATFORM_FLEXPRET)
+    #include "platform/lf_flexpret_support.h"
+#elif defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
+   // Windows platforms
+   #include "lf_windows_support.h"
+#elif __APPLE__
+    // Apple platforms
+    #include "lf_macos_support.h"
+#elif __linux__
+    // Linux
+    #include "lf_linux_support.h"
+#elif __unix__ // all unices not caught above
+    // Unix
+    #include "lf_POSIX_threads_support.h"
+#elif defined(_POSIX_VERSION)
+    // POSIX
+    #include "lf_POSIX_threads_support.h"
+#elif defined(__riscv) || defined(__riscv__)
+    // RISC-V (see https://github.com/riscv/riscv-toolchain-conventions)
+    #error "RISC-V not supported"
+#else
+#error "Platform not supported"
+#endif
+
+#if !defined(LF_THREADED) && !defined(_LF_TRACE)
+    typedef void lf_mutex_t;
+#endif
+
+#define LF_TIMEOUT _LF_TIMEOUT
 
 /**
- * Interval of time.
+ * Enter a critical section where logical time and the event queue are guaranteed
+ * to not change unless they are changed within the critical section.
+ * this can be implemented by disabling interrupts.
+ * Users of this function must ensure that lf_init_critical_sections() is
+ * called first and that lf_critical_section_exit() is called later.
+ * @return 0 on success, platform-specific error number otherwise.
  */
-typedef _interval_t interval_t;
+extern int lf_critical_section_enter();
 
 /**
- * Microstep instant.
+ * Exit the critical section entered with lf_lock_time().
+ * @return 0 on success, platform-specific error number otherwise.
  */
-typedef _microstep_t microstep_t;
+extern int lf_critical_section_exit();
 
-#ifdef NUMBER_OF_WORKERS
+/**
+ * Notify any listeners that an event has been created.
+ * The caller should call lf_critical_section_enter() before calling this function.
+ * @return 0 on success, platform-specific error number otherwise.
+ */
+extern int lf_notify_of_event();
+
+// For platforms with threading support, the following functions
+// abstract the API so that the LF runtime remains portable.
+#if defined LF_THREADED || defined _LF_TRACE
 
 /**
  * @brief Get the number of cores on the host machine.
@@ -86,8 +126,10 @@ extern int lf_thread_create(lf_thread_t* thread, void *(*lf_thread) (void *), vo
 
 /**
  * Make calling thread wait for termination of the thread.  The
- * exit status of the thread is stored in thread_return, if thread_return
+ * exit status of the thread is stored in thread_return if thread_return
  * is not NULL.
+ * @param thread The thread.
+ * @param thread_return A pointer to where to store the exit status of the thread.
  *
  * @return 0 on success, platform-specific error number otherwise.
  */
@@ -114,13 +156,12 @@ extern int lf_mutex_lock(lf_mutex_t* mutex);
  */
 extern int lf_mutex_unlock(lf_mutex_t* mutex);
 
-
 /**
  * Initialize a conditional variable.
  *
  * @return 0 on success, platform-specific error number otherwise.
  */
-extern int lf_cond_init(lf_cond_t* cond);
+extern int lf_cond_init(lf_cond_t* cond, lf_mutex_t* mutex);
 
 /**
  * Wake up all threads waiting for condition variable cond.
@@ -142,7 +183,7 @@ extern int lf_cond_signal(lf_cond_t* cond);
  *
  * @return 0 on success, platform-specific error number otherwise.
  */
-extern int lf_cond_wait(lf_cond_t* cond, lf_mutex_t* mutex);
+extern int lf_cond_wait(lf_cond_t* cond);
 
 /**
  * Block current thread on the condition variable until condition variable
@@ -152,7 +193,7 @@ extern int lf_cond_wait(lf_cond_t* cond, lf_mutex_t* mutex);
  * @return 0 on success, LF_TIMEOUT on timeout, and platform-specific error
  *  number otherwise.
  */
-extern int lf_cond_timedwait(lf_cond_t* cond, lf_mutex_t* mutex, instant_t absolute_time_ns);
+extern int lf_cond_timedwait(lf_cond_t* cond, instant_t absolute_time_ns);
 
 /*
  * Atomically increment the variable that ptr points to by the given value, and return the original value of the variable.
@@ -160,7 +201,9 @@ extern int lf_cond_timedwait(lf_cond_t* cond, lf_mutex_t* mutex, instant_t absol
  * @param value The value to be added to the variable pointed to by the ptr parameter.
  * @return The original value of the variable that ptr points to (i.e., from before the application of this operation).
  */
-#if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
+#if defined(PLATFORM_ZEPHYR)
+#define lf_atomic_fetch_add(ptr, value) _zephyr_atomic_fetch_add((int*) ptr, value)
+#elif defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
 // Assume that an integer is 32 bits.
 #define lf_atomic_fetch_add(ptr, value) InterlockedExchangeAdd(ptr, value)
 #elif defined(__GNUC__) || defined(__clang__)
@@ -175,7 +218,9 @@ extern int lf_cond_timedwait(lf_cond_t* cond, lf_mutex_t* mutex, instant_t absol
  * @param value The value to be added to the variable pointed to by the ptr parameter.
  * @return The new value of the variable that ptr points to (i.e., from before the application of this operation).
  */
-#if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
+#if defined(PLATFORM_ZEPHYR)
+#define lf_atomic_add_fetch(ptr, value) _zephyr_atomic_add_fetch((int*) ptr, value)
+#elif defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
 // Assume that an integer is 32 bits.
 #define lf_atomic_add_fetch(ptr, value) InterlockedAdd(ptr, value)
 #elif defined(__GNUC__) || defined(__clang__)
@@ -192,7 +237,9 @@ extern int lf_cond_timedwait(lf_cond_t* cond, lf_mutex_t* mutex, instant_t absol
  * @param newval The value to assign to *ptr if comparison is successful.
  * @return True if comparison was successful. False otherwise.
  */
-#if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
+#if defined(PLATFORM_ZEPHYR)
+#define lf_bool_compare_and_swap(ptr, value, newval) _zephyr_bool_compare_and_swap((bool*) ptr, value, newval)
+#elif defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
 // Assume that a boolean is represented with a 32-bit integer.
 #define lf_bool_compare_and_swap(ptr, oldval, newval) (InterlockedCompareExchange(ptr, newval, oldval) == oldval)
 #elif defined(__GNUC__) || defined(__clang__)
@@ -209,7 +256,9 @@ extern int lf_cond_timedwait(lf_cond_t* cond, lf_mutex_t* mutex, instant_t absol
  * @param newval The value to assign to *ptr if comparison is successful.
  * @return The initial value of *ptr.
  */
-#if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
+#if defined(PLATFORM_ZEPHYR)
+#define lf_val_compare_and_swap(ptr, value, newval) _zephyr_val_compare_and_swap((int*) ptr, value, newval)
+#elif defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
 #define lf_val_compare_and_swap(ptr, oldval, newval) InterlockedCompareExchange(ptr, newval, oldval)
 #elif defined(__GNUC__) || defined(__clang__)
 #define lf_val_compare_and_swap(ptr, oldval, newval) __sync_val_compare_and_swap(ptr, oldval, newval)
@@ -236,22 +285,34 @@ extern void lf_initialize_clock(void);
 extern int lf_clock_gettime(instant_t* t);
 
 /**
- * Pause execution for a number of nanoseconds.
- *
+ * Pause execution for a given duration.
+ * 
  * @return 0 for success, or -1 for failure.
  */
-extern int lf_nanosleep(instant_t requested_time);
+extern int lf_sleep(interval_t sleep_duration);
 
+/**
+ * @brief Sleep until the given wakeup time.
+ * 
+ * @param wakeup_time The time instant at which to wake up.
+ * @return int 0 if sleep completed, or -1 if it was interrupted.
+ */
+extern int lf_sleep_until_locked(instant_t wakeup_time);
 
 /**
  * Macros for marking function as deprecated
  */
 #ifdef __GNUC__
-#define DEPRECATED(X) X __attribute__((deprecated))
+    #define DEPRECATED(X) X __attribute__((deprecated))
 #elif defined(_MSC_VER)
-#define DEPRECATED(X) __declspec(deprecated) X
+    #define DEPRECATED(X) __declspec(deprecated) X
 #else
-#define DEPRECATED(X) X
+    #define DEPRECATED(X) X
 #endif
+
+/**
+ * @deprecated version of "lf_sleep"
+ */
+DEPRECATED(extern int lf_nanosleep(interval_t sleep_duration));
 
 #endif // PLATFORM_H
