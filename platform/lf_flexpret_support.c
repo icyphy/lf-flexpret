@@ -107,3 +107,56 @@ int lf_nanosleep(interval_t requested_time) {
     }
     return 0;
 }
+
+// Threaded implementation
+#if defined LF_THREADED || defined _LF_TRACE
+
+int lf_available_cores() {
+    return NUM_THREADS; // Return the number of Flexpret HW threads
+}
+
+int lf_thread_create(lf_thread_t* thread, void *(*lf_thread) (void *), void* arguments) {
+    // FIXME: 
+}
+
+
+int lf_thread_join(lf_thread_t thread, void** thread_return) {
+
+}
+
+int lf_mutex_init(lf_mutex_t* mutex) {
+    mutex->owner = UINT32_MAX;
+    mutex->locked = false;
+}
+
+int lf_mutex_lock(lf_mutex_t* mutex) {
+    lock_acquire(mutex);
+    return 0;
+}
+
+int lf_mutex_unlock(lf_mutex_t* mutex) {
+    lock_release(mutex);
+    return 0;
+}
+
+int lf_cond_init(lf_cond_t* cond, lf_mutex_t* mutex) {
+    // FIXME: Implement
+}
+
+int lf_cond_broadcast(lf_cond_t* cond) {
+    // Signal all waiting threads
+}
+
+int lf_cond_signal(lf_cond_t* cond) {
+
+}
+
+int lf_cond_wait(lf_cond_t* cond) {
+
+}
+
+int lf_cond_timedwait(lf_cond_t* cond, instant_t absolute_time_ns) {
+
+}
+
+#endif

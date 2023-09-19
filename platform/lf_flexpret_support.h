@@ -82,13 +82,7 @@ THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //     printf("Tag is " PRINTF_TAG "\n", time_value, microstep);
 #define PRINTF_TAG "(%" PRId64 ", %" PRIu32 ")"
 
-typedef struct fp_int {
-    uint8_t int_num;
-    uint8_t priority;
-    struct fp_int* next;
-} fp_int;
-
-typedef struct fp_int _lf_mutex_t;
+typedef struct lock_t _lf_mutex_t;
 
 /**
  * Time instant. Both physical and logical times are represented
