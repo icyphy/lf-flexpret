@@ -29,6 +29,7 @@ THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "../platform.h"
 #include "flexpret.h"
 
+
 /**
  * @return 0 for success, or -1 for failure
  */
@@ -68,14 +69,6 @@ int lf_sleep(interval_t sleep_duration) {
  * Initialize the LF clock.
  */
 void lf_initialize_clock() {}
-
-// Overwrite print functions with NoOp.
-int printf(const char *format, ...) {}
-int puts(const char *str) {}
-int sprintf(char *str, const char *format, ...) {}
-int snprintf(char *str, size_t size, const char *format, ...) {}
-int vprintf(const char *format, va_list ap) {}
-int vfprintf(FILE *stream, const char *format, va_list arg) {}
 
 // Functions for marking critical sections
 int lf_critical_section_enter() {

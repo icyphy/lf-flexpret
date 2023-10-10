@@ -45,6 +45,9 @@ THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <string.h>     // Defines strlen
 #include "../utils/util.h"
 
+// This header overrides the printf and friends to the flexpret's printf submodule
+#include <printf/printf.h>
+
 /**
  * Like nRF52, for FlexPRET, each mutex will control an interrupt.
  *
@@ -122,12 +125,7 @@ typedef uint32_t _microstep_t;
 // The underlying physical clock for Linux
 #define _LF_CLOCK CLOCK_MONOTONIC
 
-// Provide a list of print function signatures.
-int printf(const char *format, ...);
-int puts(const char *str);
-int sprintf(char *str, const char *format, ...);
-int snprintf(char *str, size_t size, const char *format, ...);
-int vprintf(const char *format, va_list ap);
-int vfprintf(FILE *stream, const char *format, va_list arg);
+#undef LOG_LEVEL
+#define LOG_LEVEL LOG_LEVEL_ALL
 
 #endif // LF_FLEXPRET_SUPPORT_H

@@ -1,5 +1,6 @@
 target C {
     threading: false,
+    logging: debug,
     build: "../scripts/build_flexpret_unix.sh"
 };
 
@@ -9,6 +10,6 @@ preamble {=
 
 main reactor {
     reaction(startup) {=
-        _fp_print(0x00000001);
+        printf("Hello world from test.lf: %i\n", 0x00000001);
     =}
 }
