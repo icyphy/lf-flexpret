@@ -85,8 +85,6 @@ THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //     printf("Tag is " PRINTF_TAG "\n", time_value, microstep);
 #define PRINTF_TAG "(%" PRId64 ", %" PRIu32 ")"
 
-typedef struct lock_t _lf_mutex_t;
-
 /**
  * Time instant. Both physical and logical times are represented
  * using this typedef.
@@ -121,11 +119,19 @@ typedef uint32_t _microstep_t;
  */
 #define LF_TIME_BUFFER_LENGTH 80
 
+#include <errno.h>
+#define _LF_TIMEOUT ETIMEDOUT
 
 // The underlying physical clock for Linux
 #define _LF_CLOCK CLOCK_MONOTONIC
 
-#undef LOG_LEVEL
-#define LOG_LEVEL LOG_LEVEL_ALL
+
+#if defined(LF_THREADED)
+#include "flexpret_cond.h"
+#include "flexpret_thread.h"
+typedef fp_thread_t lf_thread_t;
+typedef fp_lock_t lf_mutex_t;
+typedef fp_cond_t lf_cond_t;
+#endif // defined(LF_THREADED)
 
 #endif // LF_FLEXPRET_SUPPORT_H

@@ -101,7 +101,7 @@ extern int lf_critical_section_exit();
 
 /**
  * Notify any listeners that an event has been created.
- * The caller should call lf_critical_section_enter() before calling this function.
+ * The caller should call lf_() before calling this function.
  * @return 0 on success, platform-specific error number otherwise.
  */
 extern int lf_notify_of_event();

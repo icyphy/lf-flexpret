@@ -64,13 +64,13 @@ int lf_sleep_until_locked(instant_t wakeup_time) {
 
     // FIXME: Handle sleep durations exceeding 32bit nanoseconds range
     // FIXME: Handle async events
-    delay_until(wakeup_time);
+    fp_delay_until(wakeup_time);
     return 0;
 }
 
 int lf_sleep(interval_t sleep_duration) {
     // FIXME: Handle sleep durations exceeding 32bit
-    delay_for(sleep_duration);
+    fp_delay_for(sleep_duration);
 }
 /**
  * Initialize the LF clock.
@@ -78,13 +78,13 @@ int lf_sleep(interval_t sleep_duration) {
 void lf_initialize_clock() {}
 
 // Functions for marking critical sections
-int lf_critical_section_enter() {
+/* int lf_critical_section_enter() {
     // In the special case where this function is called during an interrupt 
     // subroutine (isr) it should have no effect
     if ((read_csr(CSR_STATUS) & 0x04) == 0x04) return 0;
 
     if (critical_section_num_nested < 0) {
-        assert(false, "Number of nested critical sections less than zero.");
+        fp_assert(false, "Number of nested critical sections less than zero.");
     } else if (critical_section_num_nested++ == 0) {
         DISABLE_INTERRUPTS();
     }
@@ -99,14 +99,14 @@ int lf_critical_section_exit() {
     if (--critical_section_num_nested == 0) {
         ENABLE_INTERRUPTS();
     } else if (critical_section_num_nested < 0) {
-        assert(false, "Number of nested critical sections less than zero.");
+        fp_assert(false, "Number of nested critical sections less than zero.");
     }
     return 0;
 }
 
 int lf_notify_of_event() {
     return 0;
-}
+} */
 
 /**
  * Pause execution for a number of nanoseconds.
@@ -141,7 +141,7 @@ int lf_thread_join(lf_thread_t thread, void** thread_return) {
 }
 
 int lf_mutex_init(lf_mutex_t* mutex) {
-    *mutex = (lt_mutex_t) LOCK_INITIALIZER;
+    *mutex = (lf_mutex_t) LOCK_INITIALIZER;
 }
 
 int lf_mutex_lock(lf_mutex_t* mutex) {
@@ -172,6 +172,40 @@ int lf_cond_wait(lf_cond_t* cond) {
 
 int lf_cond_timedwait(lf_cond_t* cond, instant_t absolute_time_ns) {
 
+}
+
+// https://www.ibm.com/docs/en/xl-c-and-cpp-aix/16.1?topic=functions-sync-fetch-add
+uint32_t __sync_fetch_and_add_4(volatile void *ptr, const uint32_t value) {
+    static lf_mutex_t sync_fetch_and_add_lock = LOCK_INITIALIZER;
+    lf_mutex_lock(&sync_fetch_and_add_lock);
+    const uint32_t prev_value = (*(uint32_t *)ptr);
+    (*(uint32_t *) ptr) += value;
+    lf_mutex_unlock(&sync_fetch_and_add_lock);
+    return prev_value;
+}
+
+// https://www.ibm.com/docs/en/xcfbg/121.141?topic=functions-sync-add-fetch
+uint32_t __sync_add_and_fetch_4(volatile void *ptr, const uint32_t value) {
+    static lf_mutex_t sync_add_and_fetch_lock = LOCK_INITIALIZER;
+    lf_mutex_lock(&sync_add_and_fetch_lock);
+    const uint32_t new_value = *((uint32_t *) ptr) + value;
+    (*(uint32_t *) ptr) = new_value;
+    lf_mutex_unlock(&sync_add_and_fetch_lock);
+    return new_value;
+}
+
+// https://www.ibm.com/docs/en/xl-c-and-cpp-aix/16.1?topic=functions-sync-bool-compare-swap
+bool __sync_bool_compare_and_swap_4(volatile void *ptr, uint32_t compare_value, uint32_t new_value) {
+    static lf_mutex_t sync_bool_compare_and_swap_lock = LOCK_INITIALIZER;
+    lf_mutex_lock(&sync_bool_compare_and_swap_lock);
+    const bool retval = (*(bool *) ptr) == compare_value;
+    
+    // Swap only occurs if condition is true
+    if (retval) {
+        (*(bool *) ptr) = new_value;
+    }
+    lf_mutex_unlock(&sync_bool_compare_and_swap_lock);
+    return retval;
 }
 
 #endif

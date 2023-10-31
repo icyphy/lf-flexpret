@@ -32,13 +32,16 @@ APP_INCS := -I$(LF_PROJECT_ROOT)/flexpret/programs/lib/include \
     -I$(LF_SOURCE_GEN_DIRECTORY)/include/core \
     -I$(LF_SOURCE_GEN_DIRECTORY)/include/core/modal_models \
     -I$(LF_SOURCE_GEN_DIRECTORY)/include/core/utils \
-    -I$(LF_SOURCE_GEN_DIRECTORY)/include/core/platform
+    -I$(LF_SOURCE_GEN_DIRECTORY)/include/core/platform \
+    -I$(LF_SOURCE_GEN_DIRECTORY)/include/core/threaded
+
 
 APP_DEFS  := -DINITIAL_EVENT_QUEUE_SIZE=10 \
 	-DINITIAL_REACT_QUEUE_SIZE=10 \
 	-DNO_TTY \
 	-DPLATFORM_FLEXPRET \
-	-DLF_UNTHREADED
+	-DLF_THREADED \
+	-DNUMBER_OF_WORKERS=NUM_THREADS
 
 GENERAL_SOURCES := \
 		$(LF_SOURCE_GEN_DIRECTORY)/core/port.c \
@@ -54,7 +57,8 @@ UTIL_SOURCES := \
 		$(LF_SOURCE_GEN_DIRECTORY)/core/utils/util.c \
 		$(LF_SOURCE_GEN_DIRECTORY)/core/utils/hashset/hashset.c \
 		$(LF_SOURCE_GEN_DIRECTORY)/core/utils/hashset/hashset_itr.c \
-		$(LF_SOURCE_GEN_DIRECTORY)/core/utils/vector.c
+		$(LF_SOURCE_GEN_DIRECTORY)/core/utils/vector.c \
+		$(LF_SOURCE_GEN_DIRECTORY)/core/utils/semaphore.c
 
 THREADED_SOURCES := \
 		$(LF_SOURCE_GEN_DIRECTORY)/core/threaded/reactor_threaded.c \

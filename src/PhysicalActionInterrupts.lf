@@ -1,6 +1,6 @@
 target C {
   keepalive: true,  // Do not exit when event queue is empty.
-  threading: false,
+  threading: true,
   logging: Debug,
   build: "../scripts/build_flexpret_unix.sh"
 }
