@@ -29,6 +29,13 @@ THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "../platform.h"
 #include "flexpret.h"
 
+/**
+ * Used to keep track of the number of nested critical sections. 
+ * 
+ * We should only disable interrupts when this is zero and we enter a critical section
+ * We should only  enable interrupts when we exit a critical section and this is zero
+ */
+static int critical_section_num_nested = 0;
 
 /**
  * @return 0 for success, or -1 for failure
@@ -72,12 +79,28 @@ void lf_initialize_clock() {}
 
 // Functions for marking critical sections
 int lf_critical_section_enter() {
-    // TODO: disable interrupts.
+    // In the special case where this function is called during an interrupt 
+    // subroutine (isr) it should have no effect
+    if ((read_csr(CSR_STATUS) & 0x04) == 0x04) return 0;
+
+    if (critical_section_num_nested < 0) {
+        assert(false, "Number of nested critical sections less than zero.");
+    } else if (critical_section_num_nested++ == 0) {
+        DISABLE_INTERRUPTS();
+    }
     return 0;
 }
 
 int lf_critical_section_exit() {
-    // TODO: enable interrupts.
+    // In the special case where this function is called during an interrupt 
+    // subroutine (isr) it should have no effect
+    if ((read_csr(CSR_STATUS) & 0x04) == 0x04) return 0;
+
+    if (--critical_section_num_nested == 0) {
+        ENABLE_INTERRUPTS();
+    } else if (critical_section_num_nested < 0) {
+        assert(false, "Number of nested critical sections less than zero.");
+    }
     return 0;
 }
 
@@ -118,8 +141,7 @@ int lf_thread_join(lf_thread_t thread, void** thread_return) {
 }
 
 int lf_mutex_init(lf_mutex_t* mutex) {
-    mutex->owner = UINT32_MAX;
-    mutex->locked = false;
+    *mutex = (lt_mutex_t) LOCK_INITIALIZER;
 }
 
 int lf_mutex_lock(lf_mutex_t* mutex) {

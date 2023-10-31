@@ -1,0 +1,33 @@
+target C {
+  keepalive: true,  // Do not exit when event queue is empty.
+  threading: false,
+  logging: Debug,
+  build: "../scripts/build_flexpret_unix.sh"
+}
+preamble {=
+  #include "platform.h"
+  #include "flexpret.h"
+=}
+main reactor {
+  preamble {=
+    static int flag = 0;
+    void *action;
+    void ie_isr(void) {
+        flag = 1;
+        printf("In isr\n");
+        lf_schedule(action, 0);
+        printf("Out of isr\n");
+    }
+  =}
+  physical action a(100 msec): int
+  reaction(startup) -> a {=
+    action = a;
+    printf("Startup\n");
+    register_isr(EXC_CAUSE_EXTERNAL_INT, ie_isr);
+    ENABLE_INTERRUPTS();
+  =}
+  reaction(a) {=
+    interval_t elapsed_time = lf_time_logical_elapsed();
+    printf("Action triggered at logical time %lld nsec after start.\n", elapsed_time);
+  =}
+}
