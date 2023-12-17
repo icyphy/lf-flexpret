@@ -45,8 +45,16 @@ THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <string.h>     // Defines strlen
 #include "../utils/util.h"
 
-// This header overrides the printf and friends to the flexpret's printf submodule
-#include <printf/printf.h>
+#include <flexpret.h>
+
+
+/**
+ * printf.h does not include definitions of vfprintf, so to avoid linking
+ * newlib's vfprintf we replace all occurrances of it with just printf
+ * 
+ */
+#define PRINTF_ALIAS_STANDARD_FUNCTION_NAMES_HARD 0
+#define vfprintf(fp, fmt, args) vprintf(fmt, args)
 
 /**
  * Like nRF52, for FlexPRET, each mutex will control an interrupt.
@@ -127,8 +135,6 @@ typedef uint32_t _microstep_t;
 
 
 #if defined(LF_THREADED)
-#include "flexpret_cond.h"
-#include "flexpret_thread.h"
 typedef fp_thread_t lf_thread_t;
 typedef fp_lock_t lf_mutex_t;
 typedef fp_cond_t lf_cond_t;

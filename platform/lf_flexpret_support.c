@@ -25,9 +25,8 @@ THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <stdio.h>
 #include <stdlib.h>
-#include "lf_flexpret_support.h"
+#include <stdarg.h>
 #include "../platform.h"
-#include "flexpret.h"
 
 /**
  * Used to keep track of the number of nested critical sections. 
@@ -77,15 +76,15 @@ int lf_sleep(interval_t sleep_duration) {
  */
 void lf_initialize_clock() {}
 
-// Functions for marking critical sections
-/* int lf_critical_section_enter() {
+// In the threaded case, LF provides these itself
+#if defined(LF_UNTHREADED)
+int lf_critical_section_enter() {
     // In the special case where this function is called during an interrupt 
     // subroutine (isr) it should have no effect
     if ((read_csr(CSR_STATUS) & 0x04) == 0x04) return 0;
 
-    if (critical_section_num_nested < 0) {
-        fp_assert(false, "Number of nested critical sections less than zero.");
-    } else if (critical_section_num_nested++ == 0) {
+    fp_assert(critical_section_num_nested >= 0, "Number of nested critical sections less than zero.");
+    if (critical_section_num_nested++ == 0) {
         DISABLE_INTERRUPTS();
     }
     return 0;
@@ -98,15 +97,15 @@ int lf_critical_section_exit() {
 
     if (--critical_section_num_nested == 0) {
         ENABLE_INTERRUPTS();
-    } else if (critical_section_num_nested < 0) {
-        fp_assert(false, "Number of nested critical sections less than zero.");
     }
+    fp_assert(critical_section_num_nested >= 0, "Number of nested critical sections less than zero.");
     return 0;
 }
 
 int lf_notify_of_event() {
     return 0;
-} */
+}
+#endif // defined(LF_UNTHREADED)
 
 /**
  * Pause execution for a number of nanoseconds.
@@ -132,51 +131,52 @@ int lf_available_cores() {
 }
 
 int lf_thread_create(lf_thread_t* thread, void *(*lf_thread) (void *), void* arguments) {
-    // FIXME: 
+    // TODO: Decide between HRTT or SRTT
+    return fp_thread_create(HRTT, thread, lf_thread, arguments);
 }
 
 
 int lf_thread_join(lf_thread_t thread, void** thread_return) {
-
+    return fp_thread_join(thread, thread_return);
 }
 
 int lf_mutex_init(lf_mutex_t* mutex) {
-    *mutex = (lf_mutex_t) LOCK_INITIALIZER;
+    *mutex = (lf_mutex_t) FP_LOCK_INITIALIZER;
 }
 
 int lf_mutex_lock(lf_mutex_t* mutex) {
-    lock_acquire(mutex);
+    fp_lock_acquire(mutex);
     return 0;
 }
 
 int lf_mutex_unlock(lf_mutex_t* mutex) {
-    lock_release(mutex);
+    fp_lock_release(mutex);
     return 0;
 }
 
 int lf_cond_init(lf_cond_t* cond, lf_mutex_t* mutex) {
-    // FIXME: Implement
+    *cond = (lf_cond_t) FP_COND_INITIALIZER(mutex);
 }
 
 int lf_cond_broadcast(lf_cond_t* cond) {
-    // Signal all waiting threads
+    return fp_cond_broadcast(cond);
 }
 
 int lf_cond_signal(lf_cond_t* cond) {
-
+    return fp_cond_signal(cond);
 }
 
 int lf_cond_wait(lf_cond_t* cond) {
-
+    return fp_cond_wait(cond);
 }
 
 int lf_cond_timedwait(lf_cond_t* cond, instant_t absolute_time_ns) {
-
+    return fp_cond_timed_wait(cond, absolute_time_ns);
 }
 
 // https://www.ibm.com/docs/en/xl-c-and-cpp-aix/16.1?topic=functions-sync-fetch-add
 uint32_t __sync_fetch_and_add_4(volatile void *ptr, const uint32_t value) {
-    static lf_mutex_t sync_fetch_and_add_lock = LOCK_INITIALIZER;
+    static lf_mutex_t sync_fetch_and_add_lock = FP_LOCK_INITIALIZER;
     lf_mutex_lock(&sync_fetch_and_add_lock);
     const uint32_t prev_value = (*(uint32_t *)ptr);
     (*(uint32_t *) ptr) += value;
@@ -186,7 +186,7 @@ uint32_t __sync_fetch_and_add_4(volatile void *ptr, const uint32_t value) {
 
 // https://www.ibm.com/docs/en/xcfbg/121.141?topic=functions-sync-add-fetch
 uint32_t __sync_add_and_fetch_4(volatile void *ptr, const uint32_t value) {
-    static lf_mutex_t sync_add_and_fetch_lock = LOCK_INITIALIZER;
+    static lf_mutex_t sync_add_and_fetch_lock = FP_LOCK_INITIALIZER;
     lf_mutex_lock(&sync_add_and_fetch_lock);
     const uint32_t new_value = *((uint32_t *) ptr) + value;
     (*(uint32_t *) ptr) = new_value;
@@ -196,7 +196,7 @@ uint32_t __sync_add_and_fetch_4(volatile void *ptr, const uint32_t value) {
 
 // https://www.ibm.com/docs/en/xl-c-and-cpp-aix/16.1?topic=functions-sync-bool-compare-swap
 bool __sync_bool_compare_and_swap_4(volatile void *ptr, uint32_t compare_value, uint32_t new_value) {
-    static lf_mutex_t sync_bool_compare_and_swap_lock = LOCK_INITIALIZER;
+    static lf_mutex_t sync_bool_compare_and_swap_lock = FP_LOCK_INITIALIZER;
     lf_mutex_lock(&sync_bool_compare_and_swap_lock);
     const bool retval = (*(bool *) ptr) == compare_value;
     
@@ -209,3 +209,11 @@ bool __sync_bool_compare_and_swap_4(volatile void *ptr, uint32_t compare_value, 
 }
 
 #endif
+
+/**
+ * We are not using vfprintf nor svfprintf and these functions have huge
+ * implementations. Doing this saves space. 
+ * 
+ */
+int _vfprintf_r(struct _reent *reent, FILE *fp, const char *fmt, va_list list) {}
+int _svfprintf_r(struct _reent *reent, FILE *fp, const char *fmt, va_list list) {}
