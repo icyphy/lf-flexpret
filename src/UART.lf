@@ -1,21 +1,14 @@
 target C {
     threading: true,
     logging: error,
-    //build: "../scripts/build_flexpret_unix.sh"
+    build: "../scripts/build_flexpret_unix.sh"
 }
 
 preamble {=
     #include <stdint.h>
     #include <stdbool.h>
     #include <platform.h>
-
-    enum State {
-        STARTBIT,
-        DATABITS,
-        STOPBIT,
-    };
 =}
-
 
 main reactor {
     state byte: {= uint8_t =}

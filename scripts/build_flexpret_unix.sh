@@ -26,6 +26,8 @@ LF_FILENAME := %s
 
 NAME = $(LF_FILENAME)
 
+include $(FLEXPRET_ROOT_DIR)/hwconfig.mk
+
 APP_INCS := -I$(LF_PROJECT_ROOT)/flexpret/programs/lib/include \
     -I$(LF_SOURCE_GEN_DIRECTORY)/include/ \
     -I$(LF_SOURCE_GEN_DIRECTORY)/include/api \
@@ -33,7 +35,8 @@ APP_INCS := -I$(LF_PROJECT_ROOT)/flexpret/programs/lib/include \
     -I$(LF_SOURCE_GEN_DIRECTORY)/include/core/modal_models \
     -I$(LF_SOURCE_GEN_DIRECTORY)/include/core/utils \
     -I$(LF_SOURCE_GEN_DIRECTORY)/include/core/platform \
-    -I$(LF_SOURCE_GEN_DIRECTORY)/include/core/threaded
+    -I$(LF_SOURCE_GEN_DIRECTORY)/include/core/threaded \
+	-I$(LF_SOURCE_GEN_DIRECTORY)/include/core/modal_models
 
 
 APP_DEFS  := -DINITIAL_EVENT_QUEUE_SIZE=10 \
@@ -41,7 +44,9 @@ APP_DEFS  := -DINITIAL_EVENT_QUEUE_SIZE=10 \
 	-DNO_TTY \
 	-DPLATFORM_FLEXPRET \
 	-DLF_THREADED \
-	-DNUMBER_OF_WORKERS=NUM_THREADS
+	-DNUMBER_OF_WORKERS=%s \
+	-DLOG_LEVEL=0 \
+	-DMODAL_REACTORS
 
 GENERAL_SOURCES := \
 		$(LF_SOURCE_GEN_DIRECTORY)/core/port.c \
@@ -89,7 +94,7 @@ APP_SOURCES := \
 
 include $(FLEXPRET_ROOT_DIR)/Makefrag
 
-' "$PROJECT_ROOT" "$LF_SOURCE_GEN_DIRECTORY" "$LF_FILENAME" > "$LF_SOURCE_GEN_DIRECTORY/Makefile"
+' "$PROJECT_ROOT" "$LF_SOURCE_GEN_DIRECTORY" "$LF_FILENAME" '$(THREADS)-1' > "$LF_SOURCE_GEN_DIRECTORY/Makefile"
 
 echo "Created $LF_SOURCE_GEN_DIRECTORY/Makefile"
 
