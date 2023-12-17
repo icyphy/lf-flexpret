@@ -1,0 +1,139 @@
+target C {
+    keepalive: true,
+    threading: true,
+    logging: warn,
+    build: "../scripts/build_flexpret_unix.sh"
+}
+
+preamble {=
+    #include <platform.h>
+
+    #define MAX_ITERATIONS (10)
+    #define NSCATTERS (NUM_THREADS - 1)
+    #define TIMESTAMP_SIZE ((1 + NSCATTERS) * MAX_ITERATIONS)
+
+    #define IDX_BASE(i)         ((1 + NSCATTERS) * i + (    0))
+    #define IDX_DATA(i, j)      ((1 + NSCATTERS) * i + (j + 1))
+
+    static float compute_part_0(float f) {
+        lf_sleep(MSEC(10));
+        return f + 1;
+    }
+    
+    static float compute_part_1(float f) {
+        lf_sleep(MSEC(10));
+        return f + 1;
+    }
+    
+    static float compute_part_2(float f) {
+        lf_sleep(MSEC(10));
+        return f + 1;
+    }
+    
+    static float compute_part_3(float f) {
+        lf_sleep(MSEC(10));
+        return f + 1;
+    }
+    
+    static float compute_part_4(float f) {
+        lf_sleep(MSEC(10));
+        return f + 1;
+    }
+    
+    static float compute_part_5(float f) {
+        lf_sleep(MSEC(10));
+        return f + 1;
+    }
+    
+    static float compute_part_6(float f) {
+        lf_sleep(MSEC(10));
+        return f + 1;
+    }
+
+    static void print_timings(uint32_t iter, instant_t *timestamps)
+    {
+        char printout[256];
+        int len = sprintf(printout, "Iteration %i: Base: %lli, ", iter, timestamps[IDX_BASE(iter)]);
+        for (int j = 0; j < NSCATTERS; j++) {
+            if (timestamps[IDX_DATA(iter, j)] != 0) {
+                len += sprintf(printout + len - 1, "{%i}: %lli, ", j, timestamps[IDX_DATA(iter, j)]) - 1;
+            } else {
+                len += sprintf(printout + len - 1, "{%i}: NA, ", j) - 1;
+            }
+        }
+        
+        printf("%s\n", printout);
+    }
+=}
+
+main reactor(start: time = 100 msec) {
+    state processed: float
+    state niterations: int = 0
+    state timestamps: instant_t[]
+
+    timer t(0, 10 msec)
+
+    reaction(startup) -> workers.timestamps {=
+        self->timestamps = malloc(TIMESTAMP_SIZE * sizeof(instant_t));
+        for (int i = 0; i < NSCATTERS; i++) {
+            lf_set(workers[i].timestamps, self->timestamps);
+        }
+    =}
+
+    reaction(t) -> workers.x, workers.niterations {=
+        self->timestamps[IDX_BASE(self->niterations)] = lf_time_physical_elapsed();
+
+        for (int i = 0; i < NSCATTERS; i++) {
+            lf_set(workers[i].x, 10.0);
+            lf_set(workers[i].niterations, self->niterations);
+        }
+    =}
+
+    workers = new[7] Worker()
+
+    reaction(workers.y) {=
+        for (int i = 0; i < NSCATTERS; i++) {
+            self->processed += workers[i].y->value;
+        }
+
+        if (++self->niterations == MAX_ITERATIONS) {
+            printf("request stop\n");
+            lf_request_stop();
+        }
+    =}
+
+    reaction(shutdown) {=
+        for (int i = 0; i < self->niterations; i++) {
+            print_timings(i, self->timestamps);
+        }
+
+        free(self->timestamps);
+    =}
+}
+
+reactor Worker(bank_index: int = 0) {
+    input x: float
+    input niterations: int
+    input timestamps: instant_t[]
+    output y: float
+    reaction(x, niterations, timestamps) -> y {=
+        instant_t time_elapsed = lf_time_physical_elapsed();
+        timestamps->value[IDX_DATA(niterations->value, self->bank_index)] = time_elapsed;
+
+        fp_assert(self->bank_index <= NSCATTERS, "Number of stages not equal to number of workers!\n");
+        
+        float result = 0;
+        switch (self->bank_index) {
+            case 0: result = compute_part_0(x->value); break;
+            case 1: result = compute_part_1(x->value); break;
+            case 2: result = compute_part_2(x->value); break;
+            case 3: result = compute_part_3(x->value); break;
+            case 4: result = compute_part_4(x->value); break;
+            case 5: result = compute_part_5(x->value); break;
+            case 6: result = compute_part_6(x->value); break;
+
+            default: break;
+        }
+        lf_set(y, result);
+    =}
+}
