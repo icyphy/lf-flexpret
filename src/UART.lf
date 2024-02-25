@@ -1,0 +1,122 @@
+target C {
+    threading: true,
+    logging: error,
+    build: "../scripts/build_flexpret_unix.sh"
+}
+
+preamble {=
+    #include <stdint.h>
+    #include <stdbool.h>
+    #include <platform.h>
+=}
+
+main reactor {
+    state byte: {= uint8_t =}
+    state bytes: {= uint8_t* =}
+    state bytes_received: int
+    timer baud(0, 2600 usec)
+
+    tx = new UART_TX()
+    rx = new UART_RX()
+
+    tx.pin -> rx.pin
+
+    reaction(startup) {=
+        self->bytes = malloc(10 * sizeof(uint8_t));
+        for (int i = 0; i < 10; i++) {
+            self->bytes[i] = 10 * i;
+        }
+    =}
+
+    reaction(baud) -> tx.byte {=
+        lf_set(tx.byte, self->byte);
+    =}
+
+    reaction(rx.byte) {=
+        printf("Received byte: 0x%x\n", rx.byte->value);
+        
+        self->byte = self->bytes[++self->bytes_received];
+        if (self->bytes_received == 10) {
+            lf_request_stop();
+        }
+    =}
+
+    reaction(shutdown) {=
+        printf("Done\n");
+    =}
+}
+
+reactor UART_RX {
+    input pin: bool
+    output byte: int
+
+    initial mode Startbit {
+        reaction(pin) -> reset(Databits) {=
+            if (pin->value == 0) {
+                lf_set_mode(Databits);
+            }        
+        =}
+    }
+
+    mode Databits {
+        state byte_reg: int = 0
+        state nbits: int = 0
+        
+        reaction(reset) {=
+            self->byte_reg = 0;
+            self->nbits = 0;
+        =}
+
+        reaction(pin) -> byte, reset(Stopbit) {=
+            self->byte_reg |= 
+            (pin->value << self->nbits);
+            if (++self->nbits == 8) {
+                lf_set_mode(Stopbit);
+                lf_set(byte, self->byte_reg);
+            }
+        =}
+    }
+
+    mode Stopbit {
+        reaction(pin) -> reset(Startbit) {=
+            if (pin->value != 1) {
+                // Error
+            }
+            lf_set_mode(Startbit);
+        =}
+    }
+}
+
+reactor UART_TX(baud: int = 115200) {
+    input byte: {= uint8_t =}
+    output pin: bool
+
+    initial mode Startbit {
+        reaction(byte) -> pin, reset(Databits) {=
+            lf_set(pin, 0);
+            lf_set_mode(Databits);
+        =}
+    }
+
+    mode Databits {
+        state nbits: int = 0
+
+        reaction(reset) {=
+            self->nbits = 0;
+        =}
+
+        reaction(byte) -> pin, reset(Stopbit) {=
+            lf_set(pin, byte->value & (1 << self->nbits));
+            if (++self->nbits == 8) {
+                lf_set_mode(Stopbit);
+            }
+        =}
+    }
+
+    mode Stopbit {
+        reaction(byte) -> pin, reset(Startbit) {=
+            lf_set(pin, 1);
+            lf_set_mode(Startbit);
+        =}
+    }
+}

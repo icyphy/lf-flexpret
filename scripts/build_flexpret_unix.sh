@@ -12,106 +12,88 @@ LF_FILENAME=${LF_SOURCE_GEN_DIRECTORY##*/} # Get the LF filename without the .lf
 echo "The LF filename is $LF_FILENAME.lf."
 
 # Copy c files into /core.
-cp "$PROJECT_ROOT/flexpret/programs/lib/start.S" "$LF_SOURCE_GEN_DIRECTORY/core/"
-cp "$PROJECT_ROOT/flexpret/programs/lib/syscalls.c" "$LF_SOURCE_GEN_DIRECTORY/core/"
-cp "$PROJECT_ROOT/flexpret/programs/lib/startup.c" "$LF_SOURCE_GEN_DIRECTORY/core/"
-cp -r "$PROJECT_ROOT/flexpret/programs/lib/tinyalloc" "$LF_SOURCE_GEN_DIRECTORY/core/"
 cp "$PROJECT_ROOT/platform/lf_flexpret_support.c" "$LF_SOURCE_GEN_DIRECTORY/core/platform/"
 
 # Copy header files into /include.
-cp -r "$PROJECT_ROOT/flexpret/programs/lib/tinyalloc" "$LF_SOURCE_GEN_DIRECTORY/include/core/"
 cp "$PROJECT_ROOT/platform/lf_flexpret_support.h" "$LF_SOURCE_GEN_DIRECTORY/include/core/platform/"
 cp "$PROJECT_ROOT/platform/platform.h" "$LF_SOURCE_GEN_DIRECTORY/include/core/"
 
 printf '
-.DEFAULT_GOAL := all
-
-XLEN ?= 32
-
 # LF variables
 LF_PROJECT_ROOT := %s
 LF_SOURCE_GEN_DIRECTORY := %s
 LF_FILENAME := %s
 
-# FlexPRET scripts directory
-FP_C_SCRIPTS_DIR := "$(LF_PROJECT_ROOT)/flexpret/scripts/c/"
+NAME = $(LF_FILENAME)
 
-# Compilation
-RISCV_PREFIX ?= riscv$(XLEN)-unknown-elf-
-RISCV_GCC ?= $(RISCV_PREFIX)gcc
-RISCV_GCC_OPTS ?= -g -static -O0 -march=rv32i -mabi=ilp32 -nostartfiles -specs=nosys.specs
-RISCV_LINK ?= -T "$(LF_PROJECT_ROOT)/flexpret/programs/lib/linker/flexpret.ld"
-RISCV_LINK_OPTS ?= -Xlinker -Map=output.map
-RISCV_OBJDUMP ?= $(RISCV_PREFIX)objdump
-RISCV_OBJDUMP_OPTS ?= -S -d
-RISCV_OBJCOPY ?= $(RISCV_PREFIX)objcopy
-RISCV_OBJCOPY_OPTS ?= -O binary
+include $(FLEXPRET_ROOT_DIR)/hwconfig.mk
 
-INCS  := -I"$(LF_PROJECT_ROOT)/flexpret/programs/lib/include" \
-    -I"$(LF_SOURCE_GEN_DIRECTORY)/include/" \
-    -I"$(LF_SOURCE_GEN_DIRECTORY)/include/api" \
-    -I"$(LF_SOURCE_GEN_DIRECTORY)/include/core" \
-    -I"$(LF_SOURCE_GEN_DIRECTORY)/include/core/modal_models" \
-    -I"$(LF_SOURCE_GEN_DIRECTORY)/include/core/utils" \
-    -I"$(LF_SOURCE_GEN_DIRECTORY)/include/core/platform"
+APP_INCS := -I$(LF_PROJECT_ROOT)/flexpret/programs/lib/include \
+    -I$(LF_SOURCE_GEN_DIRECTORY)/include/ \
+    -I$(LF_SOURCE_GEN_DIRECTORY)/include/api \
+    -I$(LF_SOURCE_GEN_DIRECTORY)/include/core \
+    -I$(LF_SOURCE_GEN_DIRECTORY)/include/core/modal_models \
+    -I$(LF_SOURCE_GEN_DIRECTORY)/include/core/utils \
+    -I$(LF_SOURCE_GEN_DIRECTORY)/include/core/platform \
+    -I$(LF_SOURCE_GEN_DIRECTORY)/include/core/threaded \
+	-I$(LF_SOURCE_GEN_DIRECTORY)/include/core/modal_models
 
-# Usually defined in CMakeLists.txt
-# "-DARDUINO" is a hacky way to disable signal() in reactor_common.c.
-# A proper way would set an EMBEDDED macro in reactor_common.c
-# to disable signal() for all embedded boards.
-DEFS  := -DINITIAL_EVENT_QUEUE_SIZE=10 \
+
+APP_DEFS  := -DINITIAL_EVENT_QUEUE_SIZE=10 \
 	-DINITIAL_REACT_QUEUE_SIZE=10 \
-	-DARDUINO
+	-DNO_TTY \
+	-DPLATFORM_FLEXPRET \
+	-DLF_THREADED \
+	-DNUMBER_OF_WORKERS=%s \
+	-DLOG_LEVEL=0 \
 
-#--------------------------------------------------------------------
-# Build application
-#--------------------------------------------------------------------
+GENERAL_SOURCES := \
+		$(LF_SOURCE_GEN_DIRECTORY)/core/port.c \
+		$(LF_SOURCE_GEN_DIRECTORY)/core/tag.c \
+		$(LF_SOURCE_GEN_DIRECTORY)/core/mixed_radix.c \
+		$(LF_SOURCE_GEN_DIRECTORY)/core/reactor_common.c \
+		$(LF_SOURCE_GEN_DIRECTORY)/core/trace.c \
+		$(LF_SOURCE_GEN_DIRECTORY)/core/lf_token.c \
+		$(LF_SOURCE_GEN_DIRECTORY)/lib/schedule.c
 
-$(LF_FILENAME).riscv:
-	# Compile the program into riscv binary.
-	$(RISCV_GCC) $(INCS) $(DEFS) $(RISCV_GCC_OPTS) $(RISCV_LINK) \
-		$(RISCV_LINK_OPTS) -o $@ \
-		"$(LF_SOURCE_GEN_DIRECTORY)/core/start.S" \
-		"$(LF_SOURCE_GEN_DIRECTORY)/core/syscalls.c" \
-		"$(LF_SOURCE_GEN_DIRECTORY)/core/tinyalloc/tinyalloc.c" \
-		"$(LF_SOURCE_GEN_DIRECTORY)/core/startup.c" \
-		"$(LF_SOURCE_GEN_DIRECTORY)/core/platform/lf_flexpret_support.c" \
-		"$(LF_SOURCE_GEN_DIRECTORY)/core/port.c" \
-		"$(LF_SOURCE_GEN_DIRECTORY)/core/tag.c" \
-		"$(LF_SOURCE_GEN_DIRECTORY)/core/utils/pqueue.c" \
-		"$(LF_SOURCE_GEN_DIRECTORY)/core/utils/util.c" \
-		"$(LF_SOURCE_GEN_DIRECTORY)/core/utils/vector.c" \
-		"$(LF_SOURCE_GEN_DIRECTORY)/core/reactor_common.c" \
-		"$(LF_SOURCE_GEN_DIRECTORY)/core/reactor.c" \
+UTIL_SOURCES := \
+		$(LF_SOURCE_GEN_DIRECTORY)/core/utils/pqueue.c \
+		$(LF_SOURCE_GEN_DIRECTORY)/core/utils/util.c \
+		$(LF_SOURCE_GEN_DIRECTORY)/core/utils/hashset/hashset.c \
+		$(LF_SOURCE_GEN_DIRECTORY)/core/utils/hashset/hashset_itr.c \
+		$(LF_SOURCE_GEN_DIRECTORY)/core/utils/vector.c \
+		$(LF_SOURCE_GEN_DIRECTORY)/core/utils/semaphore.c
+
+THREADED_SOURCES := \
+		$(LF_SOURCE_GEN_DIRECTORY)/core/threaded/reactor_threaded.c \
+		$(LF_SOURCE_GEN_DIRECTORY)/core/threaded/scheduler_adaptive.c \
+		$(LF_SOURCE_GEN_DIRECTORY)/core/threaded/scheduler_GEDF_NP_CI.c \
+		$(LF_SOURCE_GEN_DIRECTORY)/core/threaded/scheduler_GEDF_NP.c \
+		$(LF_SOURCE_GEN_DIRECTORY)/core/threaded/scheduler_NP.c \
+		$(LF_SOURCE_GEN_DIRECTORY)/core/threaded/scheduler_PEDF_NP.c \
+		$(LF_SOURCE_GEN_DIRECTORY)/core/threaded/scheduler_sync_tag_advance.c 
+
+UNTHREADED_SOURCES := \
+		$(LF_SOURCE_GEN_DIRECTORY)/core/reactor.c
+
+MODAL_SOURCES := \
+		$(LF_SOURCE_GEN_DIRECTORY)/core/modal_models/modes.c
+
+PLATFORM_SOURCES := \
+		$(LF_SOURCE_GEN_DIRECTORY)/core/platform/lf_flexpret_support.c
+
+APP_SOURCES := \
+		$(GENERAL_SOURCES) \
+		$(UTIL_SOURCES) \
+		$(UNTHREADED_SOURCES) \
+		$(THREADED_SOURCES) \
+		$(MODAL_SOURCES) \
+		$(PLATFORM_SOURCES) \
 		$(wildcard $(LF_SOURCE_GEN_DIRECTORY)/*.c) # FIXME: Does not handle spaces.
 
-$(LF_FILENAME).dump: $(LF_FILENAME).riscv
-	$(RISCV_OBJDUMP) $(RISCV_OBJDUMP_OPTS) $< > $@
+include $(FLEXPRET_ROOT_DIR)/Makefrag
 
-$(LF_FILENAME).mem: $(LF_FILENAME).riscv $(LF_FILENAME).dump
-	# Extract a binary file from the ELF file.
-	$(RISCV_OBJCOPY) $(RISCV_OBJCOPY_OPTS) $< $<.binary.txt
-	# Generate a hex file (with a .mem extension) from the binary file.
-	xxd -c 4 -e $<.binary.txt | cut -c11-18 > $@
-	xxd -c 4 -e $<.binary.txt > $@.orig
-	# Delete the binary file.
-	rm $<.binary.txt
-
-#--------------------------------------------------------------------
-# General
-#--------------------------------------------------------------------
-
-all: $(LF_FILENAME).mem
-
-clean:
-	rm -f *.riscv *.dump *.mem
-
-cleanall: clean
-	cd $(base_dir) && $(MAKE) clean
-
-.PHONY: clean cleanall
-
-' "$PROJECT_ROOT" "$LF_SOURCE_GEN_DIRECTORY" "$LF_FILENAME" > "$LF_SOURCE_GEN_DIRECTORY/Makefile"
+' "$PROJECT_ROOT" "$LF_SOURCE_GEN_DIRECTORY" "$LF_FILENAME" '$(THREADS)-1' > "$LF_SOURCE_GEN_DIRECTORY/Makefile"
 
 echo "Created $LF_SOURCE_GEN_DIRECTORY/Makefile"
 

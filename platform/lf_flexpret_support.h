@@ -45,6 +45,17 @@ THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <string.h>     // Defines strlen
 #include "../utils/util.h"
 
+#include <flexpret.h>
+
+
+/**
+ * printf.h does not include definitions of vfprintf, so to avoid linking
+ * newlib's vfprintf we replace all occurrances of it with just printf
+ * 
+ */
+#define PRINTF_ALIAS_STANDARD_FUNCTION_NAMES_HARD 0
+#define vfprintf(fp, fmt, args) vprintf(fmt, args)
+
 /**
  * Like nRF52, for FlexPRET, each mutex will control an interrupt.
  *
@@ -82,14 +93,6 @@ THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //     printf("Tag is " PRINTF_TAG "\n", time_value, microstep);
 #define PRINTF_TAG "(%" PRId64 ", %" PRIu32 ")"
 
-typedef struct fp_int {
-    uint8_t int_num;
-    uint8_t priority;
-    struct fp_int* next;
-} fp_int;
-
-typedef struct fp_int _lf_mutex_t;
-
 /**
  * Time instant. Both physical and logical times are represented
  * using this typedef.
@@ -124,16 +127,17 @@ typedef uint32_t _microstep_t;
  */
 #define LF_TIME_BUFFER_LENGTH 80
 
+#include <errno.h>
+#define _LF_TIMEOUT ETIMEDOUT
 
 // The underlying physical clock for Linux
 #define _LF_CLOCK CLOCK_MONOTONIC
 
-// Provide a list of print function signatures.
-int printf(const char *format, ...);
-int puts(const char *str);
-int sprintf(char *str, const char *format, ...);
-int snprintf(char *str, size_t size, const char *format, ...);
-int vprintf(const char *format, va_list ap);
-int vfprintf(FILE *stream, const char *format, va_list arg);
+
+#if defined(LF_THREADED)
+typedef fp_thread_t lf_thread_t;
+typedef fp_lock_t lf_mutex_t;
+typedef fp_cond_t lf_cond_t;
+#endif // defined(LF_THREADED)
 
 #endif // LF_FLEXPRET_SUPPORT_H

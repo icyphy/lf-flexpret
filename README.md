@@ -26,7 +26,7 @@ cd lingua-franca
 1. Build a FlexPRET emulator.
 ```bash
 cd flexpret
-make emulator
+make ISPM_KBYTES=128 DSPM_KBYTES=128 emulator
 cd ..
 ```
 
